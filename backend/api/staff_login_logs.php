@@ -1,5 +1,9 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
+$_cors_origins = array_filter(array_map('trim', explode(',',
+    getenv('ALLOWED_ORIGINS') ?: 'http://localhost:5173,http://localhost:5174,http://localhost:5175'
+)));
+$_cors_origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+header("Access-Control-Allow-Origin: " . (in_array($_cors_origin, $_cors_origins) ? $_cors_origin : reset($_cors_origins)));
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: GET, OPTIONS");

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const dir = 'C:\\Users\\LENOVO\\Desktop\\Taxi-new-ui\\frontend\\src\\pages';
+const dir = path.join(__dirname, 'src', 'pages');
 const files = fs.readdirSync(dir).filter(f => f.endsWith('.jsx'));
 
 const toastImport = `import { useToast } from '../context/ToastContext';`;

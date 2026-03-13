@@ -1,8 +1,9 @@
 const fs = require('fs');
 const http = require('http');
+const path = require('path');
 
-const API_DIR = 'c:/Users/LENOVO/Desktop/Taxi-new-ui/backend/api/';
-const BASE_URL = 'http://localhost:8080/backend/api/';
+const API_DIR = path.join(__dirname, 'api') + '/';
+const BASE_URL = process.env.BACKEND_URL || 'http://localhost:8080/backend/api/';
 
 const files = fs.readdirSync(API_DIR).filter(f => f.endsWith('.php'));
 

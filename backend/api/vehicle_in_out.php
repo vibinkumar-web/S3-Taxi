@@ -1,8 +1,14 @@
 <?php
 // CORS headers
-$allowed_origins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
+$allowed_origins = array_filter(array_map('trim', explode(',',
+    getenv('ALLOWED_ORIGINS') ?: 'http://localhost:5173,http://localhost:5174,http://localhost:5175'
+)));
 $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-header("Access-Control-Allow-Origin: " . (in_array($origin, $allowed_origins) ? $origin : 'http://localhost:5173'));
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: " . $origin);
+} else {
+    header("Access-Control-Allow-Origin: " . reset($allowed_origins));
+}
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");

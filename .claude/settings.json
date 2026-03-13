@@ -4,7 +4,11 @@
       "Bash(npm run test)",
       "Bash(npx vitest run --reporter verbose)",
       "Bash(npx vitest run)",
-      "Read(//c/Users/LENOVO/.claude/projects/c--Users-LENOVO-Desktop-Taxi-new-ui/memory/**)"
+      "Read(//c/Users/LENOVO/.claude/projects/c--Users-LENOVO-Desktop-Taxi-new-ui/memory/**)",
+      "Bash(grep -n \"INSERT INTO \\\\`ft_staff\\\\`\" \"c:/Users/LENOVO/Desktop/Taxi-new-ui/ft_welcome.sql\")",
+      "Bash(grep -n \"INSERT INTO \\\\`f_users\\\\`\\\\|INSERT INTO \\\\`users\\\\`\\\\|INSERT INTO \\\\`admin\\\\`\" \"c:/Users/LENOVO/Desktop/Taxi-new-ui/ft_welcome.sql\")",
+      "Bash(grep -n \"INSERT INTO \\\\`ft_register\\\\`\" \"c:/Users/LENOVO/Desktop/Taxi-new-ui/ft_welcome.sql\")",
+      "Bash(grep -r \"http://localhost:517[3-5]\" /c/Users/LENOVO/Desktop/Taxi-new-ui/backend/api/*.php)"
     ],
     "additionalDirectories": [
       "C:\\Users\\LENOVO\\Desktop\\Taxi-new-ui\\frontend\\src",
