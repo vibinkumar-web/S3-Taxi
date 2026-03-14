@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { fmtDate } from '../utils/dateFormat';
 
 const DayWiseReport = () => {
     const toast = useToast();
@@ -113,7 +114,7 @@ const DayWiseReport = () => {
                             ) : (
                                 reportData.map((record, index) => (
                                     <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                        <td style={{ padding: '12px 24px', fontWeight: 600, color: '#475569', fontSize: 13 }}>{record.date}</td>
+                                        <td style={{ padding: '12px 24px', fontWeight: 600, color: '#475569', fontSize: 13 }}>{fmtDate(record.date)}</td>
                                         <td style={{ padding: '12px 24px', color: '#023149', fontFamily: 'monospace', fontWeight: 800, fontSize: 13 }}>#{record.trip_id}</td>
                                         <td style={{ padding: '12px 24px', fontWeight: 700, color: '#334155' }}>{record.vechile_no}</td>
                                         <td style={{ padding: '12px 24px', color: '#475569', fontSize: 13 }}>{record.company_name}</td>

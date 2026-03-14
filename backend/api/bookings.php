@@ -9,19 +9,64 @@ $db = $database->getConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    $all = isset($_GET['all']) && $_GET['all'] === '1';
-    $query = $all
-        ? "SELECT * FROM f_ft_booking ORDER BY b_id DESC"
-        : "SELECT * FROM f_ft_booking WHERE b_date >= CURDATE() ORDER BY b_id DESC";
-    $stmt = $db->prepare($query);
-    $stmt->execute();
-    
-    $bookings = array();
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        array_push($bookings, $row);
+    // Return next booking ID and total count
+    if (isset($_GET['action']) && $_GET['action'] === 'next_id') {
+        $stmtMax = $db->prepare("SELECT MAX(b_id) as max_id, COUNT(*) as total FROM f_ft_booking");
+        $stmtMax->execute();
+        $row = $stmtMax->fetch(PDO::FETCH_ASSOC);
+        $max_id = (int)($row['max_id'] ?? 0);
+        $next_id = $max_id + 1;
+        echo json_encode(['next_id' => $next_id, 'last_id' => $max_id, 'total' => (int)$row['total']]);
+        exit;
     }
-    
-    echo json_encode($bookings);
+
+    $conditions = [];
+    $params = [];
+
+    $from_date = isset($_GET['from_date']) ? trim($_GET['from_date']) : '';
+    $to_date   = isset($_GET['to_date'])   ? trim($_GET['to_date'])   : '';
+    $status    = isset($_GET['status'])    ? trim($_GET['status'])    : '';
+    $search    = isset($_GET['search'])    ? trim($_GET['search'])    : '';
+    $page      = max(1, (int)($_GET['page'] ?? 1));
+    $limit     = min(100, max(10, (int)($_GET['limit'] ?? 50)));
+    $offset    = ($page - 1) * $limit;
+    $all       = isset($_GET['all']) && $_GET['all'] === '1';
+
+    if ($from_date) { $conditions[] = "b_date >= :from_date"; $params[':from_date'] = $from_date; }
+    if ($to_date)   { $conditions[] = "b_date <= :to_date";   $params[':to_date']   = $to_date; }
+    if ($status === 'assigned') { $conditions[] = "assign = '1'"; }
+    if ($status === 'awaiting') { $conditions[] = "assign = '0'"; }
+    if ($search) {
+        $conditions[] = "(b_name LIKE :search OR m_no LIKE :search OR b_id = :search_id)";
+        $params[':search']    = '%' . $search . '%';
+        $params[':search_id'] = is_numeric($search) ? (int)$search : -1;
+    }
+
+    // Only default to today if no filters AND not ?all=1
+    if (!$all && !$from_date && !$to_date && !$status && !$search) {
+        $conditions[] = "b_date >= CURDATE()";
+    }
+
+    $where = count($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+
+    $countStmt = $db->prepare("SELECT COUNT(*) FROM f_ft_booking $where");
+    foreach ($params as $k => $v) $countStmt->bindValue($k, $v);
+    $countStmt->execute();
+    $total = (int)$countStmt->fetchColumn();
+
+    $stmt = $db->prepare("SELECT * FROM f_ft_booking $where ORDER BY b_id DESC LIMIT :limit OFFSET :offset");
+    foreach ($params as $k => $v) $stmt->bindValue($k, $v);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    echo json_encode([
+        'bookings' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'total'    => $total,
+        'page'     => $page,
+        'pages'    => (int)ceil($total / $limit),
+        'limit'    => $limit,
+    ]);
 
 } elseif ($method === 'POST') {
     $data = json_decode(file_get_contents("php://input"));

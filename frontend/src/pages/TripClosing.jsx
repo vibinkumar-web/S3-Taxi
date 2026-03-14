@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
+import { formatBookingId } from '../constants';
 
 
 
@@ -237,7 +238,7 @@ const TripClosing = () => {
                                                 <div style={{ display: 'flex', justifyItems: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                                                     <div style={{ flex: 1 }}>
                                                         <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>Booking ID</span>
-                                                        <div style={{ fontSize: 18, fontWeight: 800, color: '#023149' }}>#{v.b_id}</div>
+                                                        <div style={{ fontSize: 18, fontWeight: 800, color: '#023149' }}>{formatBookingId(v.b_id)}</div>
                                                     </div>
                                                     <div style={{ background: '#f0fdf4', color: '#166534', padding: '4px 8px', borderRadius: 6, fontSize: 10, fontWeight: 800, border: '1px solid #bbf7d0', letterSpacing: '.05em' }}>ON TRIP</div>
                                                 </div>
@@ -300,7 +301,7 @@ const TripClosing = () => {
 
                                 <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '20px 24px', marginBottom: 32, display: 'flex', flexWrap: 'wrap', gap: 40 }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                        <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Booking ID:</span> <span style={{ fontSize: 14, fontWeight: 800, color: '#023149' }}>#{tripDetails.b_id}</span></div>
+                                        <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Booking ID:</span> <span style={{ fontSize: 14, fontWeight: 800, color: '#023149' }}>{formatBookingId(tripDetails.b_id)}</span></div>
                                         <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Customer:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#023149' }}>{tripDetails.b_name}</span></div>
                                         <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Contact:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#475569' }}>{tripDetails.m_no}</span></div>
                                     </div>

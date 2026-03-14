@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { formatBookingId } from '../constants';
 
 /* ── Palette ── */
 const NAVY = '#023149';
@@ -278,7 +279,7 @@ const AdminDashboard = ({ user, stats, navigate }) => {
                             {D.live_trips?.length > 0 ? D.live_trips.map((t, i) => (
                                 <div key={i} style={{ padding: 12, background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>#{t.b_id} - {t.b_name}</span>
+                                        <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{formatBookingId(t.b_id)} - {t.b_name}</span>
                                         <span style={{ fontSize: 11, fontWeight: 800, color: NAVY, background: CREAM, padding: '2px 6px', borderRadius: 4 }}>{t.v_id}</span>
                                     </div>
                                     <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -303,7 +304,7 @@ const AdminDashboard = ({ user, stats, navigate }) => {
                             {D.upcoming_assignments?.length > 0 ? D.upcoming_assignments.map((t, i) => (
                                 <div key={i} style={{ padding: 12, background: '#fef2f2', borderRadius: 8, border: '1px solid #fecaca' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: RED }}>#{t.b_id} - {t.b_name}</span>
+                                        <span style={{ fontSize: 13, fontWeight: 700, color: RED }}>{formatBookingId(t.b_id)} - {t.b_name}</span>
                                         <button onClick={() => navigate('/assignments')} style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: RED, border: 'none', padding: '2px 8px', borderRadius: 4, cursor: 'pointer' }}>ASSIGN</button>
                                     </div>
                                     <div style={{ fontSize: 12, color: '#991b1b', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -328,7 +329,7 @@ const AdminDashboard = ({ user, stats, navigate }) => {
                             {D.recent_bookings?.length > 0 ? D.recent_bookings.map((t, i) => (
                                 <div key={i} style={{ padding: 12, background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>#{t.b_id} - {t.b_name}</span>
+                                        <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{formatBookingId(t.b_id)} - {t.b_name}</span>
                                         <span style={{ fontSize: 10, fontWeight: 800, color: t.booking_status == '1' ? '#166534' : '#6b7280', background: t.booking_status == '1' ? '#dcfce7' : '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>
                                             {t.booking_status == '1' ? 'COMPLETED' : 'PENDING'}
                                         </span>
@@ -505,7 +506,7 @@ const StaffDashboard = ({ user, stats, navigate }) => {
                             {D.live_trips?.length > 0 ? D.live_trips.map((t, i) => (
                                 <div key={i} style={{ padding: 12, background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>#{t.b_id} - {t.b_name}</span>
+                                        <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{formatBookingId(t.b_id)} - {t.b_name}</span>
                                         <span style={{ fontSize: 11, fontWeight: 800, color: NAVY, background: CREAM, padding: '2px 6px', borderRadius: 4 }}>{t.v_id}</span>
                                     </div>
                                     <div style={{ fontSize: 12, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -530,7 +531,7 @@ const StaffDashboard = ({ user, stats, navigate }) => {
                             {D.upcoming_assignments?.length > 0 ? D.upcoming_assignments.map((t, i) => (
                                 <div key={i} style={{ padding: 12, background: '#fef2f2', borderRadius: 8, border: '1px solid #fecaca' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: RED }}>#{t.b_id} - {t.b_name}</span>
+                                        <span style={{ fontSize: 13, fontWeight: 700, color: RED }}>{formatBookingId(t.b_id)} - {t.b_name}</span>
                                         <button onClick={() => navigate('/assignments')} style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: RED, border: 'none', padding: '2px 8px', borderRadius: 4, cursor: 'pointer' }}>ASSIGN</button>
                                     </div>
                                     <div style={{ fontSize: 12, color: '#991b1b', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -555,7 +556,7 @@ const StaffDashboard = ({ user, stats, navigate }) => {
                             {D.recent_bookings?.length > 0 ? D.recent_bookings.map((t, i) => (
                                 <div key={i} style={{ padding: 12, background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>#{t.b_id} - {t.b_name}</span>
+                                        <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{formatBookingId(t.b_id)} - {t.b_name}</span>
                                         <span style={{ fontSize: 10, fontWeight: 800, color: t.booking_status == '1' ? '#166534' : '#6b7280', background: t.booking_status == '1' ? '#dcfce7' : '#f1f5f9', padding: '2px 6px', borderRadius: 4 }}>
                                             {t.booking_status == '1' ? 'COMPLETED' : 'PENDING'}
                                         </span>

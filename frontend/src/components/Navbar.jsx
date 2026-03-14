@@ -70,10 +70,10 @@ const DD = ({ id, label, open, toggle, children }) => {
                 style={{
                     border: 'none', cursor: 'pointer',
                     color: active ? '#fff' : 'rgba(255,255,255,.8)',
-                    fontSize: '14px', fontWeight: 500,
-                    padding: '8px 12px', borderRadius: '8px',
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    letterSpacing: '.01em',
+                    fontSize: '13px', fontWeight: 500,
+                    padding: '6px 9px', borderRadius: '8px',
+                    display: 'flex', alignItems: 'center', gap: 3,
+                    letterSpacing: '.01em', whiteSpace: 'nowrap',
                     background: active ? '#c5111a' : 'transparent',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#fff'; if (!active) e.currentTarget.style.background = 'rgba(255,255,255,.1)'; }}
@@ -303,8 +303,16 @@ const Navbar = () => {
                                     <Sub to="/tariff-upload"    onClick={() => setOpen(null)}>Bulk Tariff Upload</Sub>
                                     <Sub to="/customer-upload"  onClick={() => setOpen(null)}>Customer Upload</Sub>
                                     <Sub to="/user-rights"      onClick={() => setOpen(null)}>User Rights</Sub>
-                                    <Sub to="/settings"         onClick={() => setOpen(null)}>Settings</Sub>
                                 </DD>
+                            )}
+
+                            {user.role === 'admin' && (
+                                <Link
+                                    to="/settings"
+                                    style={navLinkStyle('/settings')}
+                                    onMouseEnter={e => { e.currentTarget.style.color = '#fff'; if (!isActive('/settings')) e.currentTarget.style.background = 'rgba(255,255,255,.1)'; }}
+                                    onMouseLeave={e => { if (!isActive('/settings')) { e.currentTarget.style.color = 'rgba(255,255,255,.8)'; e.currentTarget.style.background = 'transparent'; } }}
+                                >Settings</Link>
                             )}
                         </div>
                     )}
@@ -313,21 +321,6 @@ const Navbar = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, zIndex: 2, flexShrink: 0 }}>
                         {user ? (
                             <>
-                                {/* Notification bell — hidden on very small screens */}
-                                <button
-                                    className="nav-icon-btn"
-                                    title="Notifications"
-                                    style={{
-                                        background: 'none', border: 'none', cursor: 'pointer',
-                                        padding: 6, display: 'flex', color: 'rgba(255,255,255,.6)',
-                                        borderRadius: 8,
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,.6)'}
-                                >
-                                    <span className="material-icons" style={{ fontSize: 22 }}>notifications_none</span>
-                                </button>
-
                                 {/* Username chip — text hidden on small screens */}
                                 <div className="nav-desktop" style={{
                                     display: 'flex', alignItems: 'center', gap: 8,
@@ -361,18 +354,17 @@ const Navbar = () => {
                                 <button
                                     className="nav-desktop nav-logout-btn"
                                     onClick={handleLogout}
+                                    title="Logout"
                                     style={{
                                         background: '#c5111a', color: '#fff', border: 'none',
-                                        borderRadius: '8px', padding: '8px 14px',
-                                        fontSize: '14px', fontWeight: 700, cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', gap: 6,
-                                        whiteSpace: 'nowrap',
+                                        borderRadius: '50%', width: 36, height: 36,
+                                        cursor: 'pointer', display: 'flex',
+                                        alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                                     }}
                                     onMouseEnter={e => e.currentTarget.style.background = '#7d0907'}
                                     onMouseLeave={e => e.currentTarget.style.background = '#c5111a'}
                                 >
-                                    <span className="material-icons" style={{ fontSize: 16 }}>logout</span>
-                                    Logout
+                                    <span className="material-icons" style={{ fontSize: 18 }}>logout</span>
                                 </button>
 
                                 {/* Hamburger — mobile/tablet only */}
@@ -507,8 +499,17 @@ const Navbar = () => {
                                 <MobileLink to="/tariff-upload"   onClick={closeMob}>Bulk Tariff Upload</MobileLink>
                                 <MobileLink to="/customer-upload" onClick={closeMob}>Customer Upload</MobileLink>
                                 <MobileLink to="/user-rights"     onClick={closeMob}>User Rights</MobileLink>
-                                <MobileLink to="/settings"        onClick={closeMob}>Settings</MobileLink>
                             </MobileSection>
+                        )}
+
+                        {/* Settings — admin only, direct link */}
+                        {user.role === 'admin' && (
+                            <MobileLink to="/settings" onClick={closeMob}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <span className="material-icons" style={{ fontSize: 20, color: ACCENT }}>settings</span>
+                                    Settings
+                                </span>
+                            </MobileLink>
                         )}
 
                         {/* Logout */}

@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
+import { formatBookingId } from '../constants';
 
         
 
@@ -62,7 +63,7 @@ const { api, user } = useContext(AuthContext);
                 <div>
                     <div>
                         <h1>Cancel Booking</h1>
-                        <p>Withdraw and cancel scheduled trip #{booking.b_id}</p>
+                        <p>Withdraw and cancel scheduled trip {formatBookingId(booking.b_id)}</p>
                     </div>
                     <button className="btn-ghost" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }} onClick={() => navigate('/bookings')}>
                         <span className="material-icons" style={{ fontSize: 16 }}>arrow_back</span>

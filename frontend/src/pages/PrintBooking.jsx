@@ -2,7 +2,8 @@ import { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { API, DATE_RANGE_ALL } from '../constants';
+import { API, DATE_RANGE_ALL, formatBookingId } from '../constants';
+import { fmtDate } from '../utils/dateFormat';
 
 const PrintBooking = () => {
     const toast = useToast();
@@ -52,11 +53,11 @@ const PrintBooking = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 32, alignItems: 'center', background: '#f8fafc', padding: '16px 24px', borderRadius: 8, border: '1px dashed #cbd5e1' }}>
                     <div>
                         <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>Confirmed Booking ID</span>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: '#023149', marginTop: 4 }}>#{booking.b_id}</div>
+                        <div style={{ fontSize: 20, fontWeight: 900, color: '#023149', marginTop: 4 }}>{formatBookingId(booking.b_id)}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                         <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em' }}>Issue Date</span>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: '#023149', marginTop: 4 }}>{booking.date || new Date().toLocaleDateString()}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#023149', marginTop: 4 }}>{booking.date ? fmtDate(booking.date) : fmtDate(new Date().toISOString().split('T')[0])}</div>
                     </div>
                 </div>
 

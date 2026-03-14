@@ -59,11 +59,12 @@ function update_logout($db, $id_emp, $login_time_str) {
 if ($method === 'GET') {
     // Fetch all currently logged-in vehicles (which act like drivers on the portal, emp_login might be null or 0 compared to staff)
     // For legacy, vehicles are marked by `v_type` OR joining `f_v_attach` to find vehicle IDs
-    $query = "SELECT l.id_emp as v_id, l.login_time, v.vacant_place, v.v_no, v.d_name 
+    $query = "SELECT l.id_emp as v_id, MAX(l.login_time) as login_time, v.vacant_place, v.v_no, v.d_name
               FROM f_login_status l
               JOIN f_v_attach v ON l.id_emp = v.v_id
               WHERE l.login_status = '1'
-              ORDER BY l.login_time DESC";
+              GROUP BY l.id_emp, v.vacant_place, v.v_no, v.d_name
+              ORDER BY login_time DESC";
               
     $stmt = $db->prepare($query);
     $stmt->execute();
@@ -77,6 +78,62 @@ if ($method === 'POST') {
     $data = json_decode(file_get_contents("php://input"));
     $action = isset($data->action) ? $data->action : '';
     
+    if ($action === 'login_single') {
+        $v_id    = isset($data->v_id)    ? trim($data->v_id)    : '';
+        $location = isset($data->location) ? trim($data->location) : '';
+        if (!$v_id) {
+            http_response_code(400);
+            echo json_encode(["message" => "Vehicle ID is required."]);
+            exit;
+        }
+
+        // Check vehicle exists
+        $chk = $db->prepare("SELECT v_id FROM f_v_attach WHERE v_id = :v_id");
+        $chk->bindParam(':v_id', $v_id);
+        $chk->execute();
+        if (!$chk->fetch()) {
+            http_response_code(404);
+            echo json_encode(["message" => "Vehicle ID $v_id not found."]);
+            exit;
+        }
+
+        // Check already logged in
+        $chkLogin = $db->prepare("SELECT id_emp FROM f_login_status WHERE id_emp = :v_id AND login_status = '1'");
+        $chkLogin->bindParam(':v_id', $v_id);
+        $chkLogin->execute();
+        if ($chkLogin->fetch()) {
+            http_response_code(409);
+            echo json_encode(["message" => "Vehicle $v_id is already logged in."]);
+            exit;
+        }
+
+        $login_time = date('Y-m-d H:i:s');
+
+        // Delete all old/duplicate rows for this vehicle first, then insert clean
+        $del = $db->prepare("DELETE FROM f_login_status WHERE id_emp = :v_id");
+        $del->bindParam(':v_id', $v_id);
+        $del->execute();
+
+        $upd = $db->prepare("INSERT INTO f_login_status (id_emp, login_status, emp_login, login_time) VALUES (:v_id, '1', '1', :login_time)");
+        $upd->bindParam(':v_id', $v_id);
+        $upd->bindParam(':login_time', $login_time);
+
+        if ($upd->execute()) {
+            // Update vacant_place in f_v_attach if location provided
+            if ($location) {
+                $loc = $db->prepare("UPDATE f_v_attach SET vacant_place = :location WHERE v_id = :v_id");
+                $loc->bindParam(':location', $location);
+                $loc->bindParam(':v_id', $v_id);
+                $loc->execute();
+            }
+            echo json_encode(["message" => "Vehicle $v_id logged in successfully.", "status" => "success"]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["message" => "Failed to log in vehicle $v_id."]);
+        }
+        exit;
+    }
+
     if ($action === 'logout_all') {
         // Find all active vehicles
         $query = "SELECT l.id_emp, l.login_time 

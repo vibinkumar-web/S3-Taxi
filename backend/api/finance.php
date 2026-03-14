@@ -70,6 +70,90 @@ switch ($method) {
                 echo json_encode(["status" => "success", "data" => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
             }
 
+            // All Vehicles Commission Summary for a given month (or all time)
+            else if ($action === 'all_vehicle_commissions') {
+                $month = !empty($_GET['month']) ? $_GET['month'] : date('Y-m');
+                $all_time = isset($_GET['all_time']) && $_GET['all_time'] === '1';
+                $v_id_filter = !empty($_GET['v_id']) ? trim($_GET['v_id']) : '';
+
+                if ($all_time) {
+                    // No date filter — all trips ever
+                    $sql = "
+                        SELECT
+                            va.v_id,
+                            va.v_no,
+                            va.d_name,
+                            COUNT(c.b_id) as trip_count,
+                            COALESCE(SUM(c.net_total), 0) as total_earnings,
+                            ROUND(COALESCE(SUM(c.net_total), 0) * 0.10, 2) as commission_due,
+                            COALESCE(paid.commission_paid, 0) as commission_paid,
+                            GREATEST(0, ROUND(COALESCE(SUM(c.net_total), 0) * 0.10 - COALESCE(paid.commission_paid, 0), 2)) as commission_pending
+                        FROM f_v_attach va
+                        LEFT JOIN f_closing c ON va.v_id = c.v_id
+                        LEFT JOIN (
+                            SELECT v_id, SUM(amount) as commission_paid
+                            FROM finance_ledger
+                            WHERE type = 'commission'
+                            GROUP BY v_id
+                        ) paid ON va.v_id = paid.v_id
+                    ";
+                    $params_q = [];
+                } else {
+                    $sql = "
+                        SELECT
+                            va.v_id,
+                            va.v_no,
+                            va.d_name,
+                            COUNT(c.b_id) as trip_count,
+                            COALESCE(SUM(c.net_total), 0) as total_earnings,
+                            ROUND(COALESCE(SUM(c.net_total), 0) * 0.10, 2) as commission_due,
+                            COALESCE(paid.commission_paid, 0) as commission_paid,
+                            GREATEST(0, ROUND(COALESCE(SUM(c.net_total), 0) * 0.10 - COALESCE(paid.commission_paid, 0), 2)) as commission_pending
+                        FROM f_v_attach va
+                        LEFT JOIN f_closing c ON va.v_id = c.v_id AND DATE_FORMAT(c.p_date, '%Y-%m') = ?
+                        LEFT JOIN (
+                            SELECT v_id, SUM(amount) as commission_paid
+                            FROM finance_ledger
+                            WHERE type = 'commission' AND DATE_FORMAT(transaction_date, '%Y-%m') = ?
+                            GROUP BY v_id
+                        ) paid ON va.v_id = paid.v_id
+                    ";
+                    $params_q = [$month, $month];
+                }
+
+                if ($v_id_filter) {
+                    $sql .= " WHERE va.v_id LIKE ? OR va.v_no LIKE ? OR va.d_name LIKE ?";
+                    $like = '%' . $v_id_filter . '%';
+                    $params_q = array_merge($params_q, [$like, $like, $like]);
+                }
+
+                $sql .= " GROUP BY va.v_id, va.v_no, va.d_name, paid.commission_paid ORDER BY total_earnings DESC, va.v_id ASC";
+
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params_q);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Totals
+                $grand_trips    = array_sum(array_column($rows, 'trip_count'));
+                $grand_earnings = array_sum(array_column($rows, 'total_earnings'));
+                $grand_due      = array_sum(array_column($rows, 'commission_due'));
+                $grand_paid     = array_sum(array_column($rows, 'commission_paid'));
+                $grand_pending  = array_sum(array_column($rows, 'commission_pending'));
+
+                echo json_encode([
+                    "status"  => "success",
+                    "month"   => $month,
+                    "vehicles" => $rows,
+                    "totals"  => [
+                        "trip_count"         => $grand_trips,
+                        "total_earnings"     => round($grand_earnings, 2),
+                        "commission_due"     => round($grand_due, 2),
+                        "commission_paid"    => round($grand_paid, 2),
+                        "commission_pending" => round($grand_pending, 2),
+                    ]
+                ]);
+            }
+
             // Vehicle Commission Summary: trip totals + 10% due + paid + pending
             else if ($action === 'vehicle_commission' && !empty($_GET['v_id'])) {
                 $v_id = trim($_GET['v_id']);

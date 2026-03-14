@@ -10,7 +10,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     // List all unassigned bookings
-    $query = "SELECT * FROM f_ft_booking WHERE assign = '0' AND (booking_status != '1' OR booking_status IS NULL) ORDER BY pickup ASC";
+    $query = "SELECT * FROM f_ft_booking WHERE assign = '0' AND (booking_status != '1' OR booking_status IS NULL) ORDER BY b_id DESC";
     $stmt = $db->prepare($query);
     $stmt->execute();
     

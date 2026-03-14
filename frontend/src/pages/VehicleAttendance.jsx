@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { fmtDateTime } from '../utils/dateFormat';
 
 const VehicleAttendance = () => {
     const toast = useToast();
@@ -163,10 +164,10 @@ const VehicleAttendance = () => {
                                             <td style={{ fontWeight: 700 }}>{row.name || 'Agent'}</td>
                                             <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{row.m_no || 'Mobile'}</td>
                                             <td style={{ whiteSpace: 'nowrap' }}>
-                                                {loginDate.toLocaleDateString()} {loginDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {fmtDateTime(row.login_time)}
                                             </td>
                                             <td style={{ whiteSpace: 'nowrap' }}>
-                                                {logoutDate ? `${logoutDate.toLocaleDateString()} ${logoutDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '-'}
+                                                {logoutDate ? fmtDateTime(row.logout) : '—'}
                                             </td>
                                             <td style={{ fontWeight: 600, color: '#0f172a' }}>{activeDuration}</td>
                                             <td style={{ textAlign: 'right', fontWeight: 700, color: '#16a34a' }}>0</td>

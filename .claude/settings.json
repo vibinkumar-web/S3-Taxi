@@ -8,7 +8,13 @@
       "Bash(grep -n \"INSERT INTO \\\\`ft_staff\\\\`\" \"c:/Users/LENOVO/Desktop/Taxi-new-ui/ft_welcome.sql\")",
       "Bash(grep -n \"INSERT INTO \\\\`f_users\\\\`\\\\|INSERT INTO \\\\`users\\\\`\\\\|INSERT INTO \\\\`admin\\\\`\" \"c:/Users/LENOVO/Desktop/Taxi-new-ui/ft_welcome.sql\")",
       "Bash(grep -n \"INSERT INTO \\\\`ft_register\\\\`\" \"c:/Users/LENOVO/Desktop/Taxi-new-ui/ft_welcome.sql\")",
-      "Bash(grep -r \"http://localhost:517[3-5]\" /c/Users/LENOVO/Desktop/Taxi-new-ui/backend/api/*.php)"
+      "Bash(grep -r \"http://localhost:517[3-5]\" /c/Users/LENOVO/Desktop/Taxi-new-ui/backend/api/*.php)",
+      "Bash(grep -A 150 \"CREATE TABLE \\\\`f_ft_booking\\\\`\" ft_welcome.sql)",
+      "Bash(php -r \":*)",
+      "Read(//c/php/**)",
+      "Bash(/c/xampp/php/php.exe fix_tavera.php)",
+      "Bash(/c/xampp/php/php.exe check_closing.php)",
+      "Bash(/c/xampp/php/php.exe -r \":*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\LENOVO\\Desktop\\Taxi-new-ui\\frontend\\src",

@@ -15,9 +15,22 @@ $db = $database->getConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
+    // last_km action: return last closing KM for a vehicle
+    if (isset($_GET['action']) && $_GET['action'] === 'last_km') {
+        $v_id = isset($_GET['v_id']) ? trim($_GET['v_id']) : '';
+        if (empty($v_id)) {
+            echo json_encode(['last_km' => 0]);
+            exit;
+        }
+        $stmt = $db->prepare("SELECT MAX(CAST(closing_km AS UNSIGNED)) AS max_km FROM f_closing WHERE v_id = :v_id");
+        $stmt->bindParam(':v_id', $v_id);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        echo json_encode(['last_km' => (int)($row['max_km'] ?? 0)]);
+        exit;
+    }
+
     // Fetch assigned trips
-    // Legacy: SELECT * FROM f_ontrip where already_assign='1'
-    
     $query = "SELECT * FROM f_ontrip WHERE already_assign = '1' ORDER BY bookin_time DESC";
     $stmt = $db->prepare($query);
     $stmt->execute();
@@ -51,19 +64,19 @@ if ($method === 'GET') {
         $opening_km = $data->opening_km;
         
         // Validation: Check against last closing KM
-        $query_check = "SELECT MAX(closing_km) AS max_km FROM f_closing WHERE v_id = :v_id";
+        $query_check = "SELECT MAX(CAST(closing_km AS UNSIGNED)) AS max_km FROM f_closing WHERE v_id = :v_id";
         $stmt_check = $db->prepare($query_check);
         $stmt_check->bindParam(":v_id", $v_id);
         $stmt_check->execute();
         $row_check = $stmt_check->fetch(PDO::FETCH_ASSOC);
         $last_closing_km = $row_check['max_km'] ? $row_check['max_km'] : 0;
         
-        // Validation disabled to allow manual overrides for mismatched odometer readouts as requested by user.
-        // if ($last_closing_km > 0 && $opening_km < $last_closing_km) {
-        //      http_response_code(400);
-        //      echo json_encode(array("message" => "Opening KM cannot be less than last Closing KM ($last_closing_km)."));
-        //      exit;
-        // }
+        // Validate: opening KM must be >= last closing KM
+        if ($last_closing_km > 0 && $opening_km < $last_closing_km) {
+            http_response_code(400);
+            echo json_encode(array("message" => "Opening KM ($opening_km) cannot be less than last closing KM ($last_closing_km). Please enter a valid odometer reading."));
+            exit;
+        }
         
         date_default_timezone_set("Asia/Calcutta");  
         $current_time = date("Y-m-d H:i");

@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useToast } from '../context/ToastContext';
+import { fmtDateTime } from '../utils/dateFormat';
 
         
 
@@ -249,7 +250,7 @@ const handleChange = (e) => {
                                         <tr key={row.id}>
                                             <td style={{ fontWeight: 700, color: '#023149', fontFamily: 'monospace' }}>{row.id_emp}</td>
                                             <td style={{ fontWeight: 600 }}>{row.emp_name}</td>
-                                            <td>{row.login_time}</td>
+                                            <td>{fmtDateTime(row.login_time)}</td>
                                         </tr>
                                     ))}
                                     {attendanceList.length === 0 && (
@@ -285,8 +286,8 @@ const handleChange = (e) => {
                                     <tbody>
                                         {salaryData.shifts.map((shift, i) => (
                                             <tr key={i}>
-                                                <td style={{ fontSize: 13 }}>{shift.login_time}</td>
-                                                <td style={{ fontSize: 13, color: '#64748b' }}>{shift.logout === '0000-00-00 00:00:00' ? 'Active' : shift.logout}</td>
+                                                <td style={{ fontSize: 13 }}>{fmtDateTime(shift.login_time)}</td>
+                                                <td style={{ fontSize: 13, color: '#64748b' }}>{shift.logout === '0000-00-00 00:00:00' ? 'Active' : fmtDateTime(shift.logout)}</td>
                                                 <td style={{ textAlign: 'right', fontWeight: 700, color: '#0284c7', fontSize: 13 }}>{shift.duration_formatted}</td>
                                             </tr>
                                         ))}

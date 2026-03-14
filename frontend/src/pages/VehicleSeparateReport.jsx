@@ -136,7 +136,6 @@ const VehicleSeparateReport = () => {
                                 <th>V-Type</th>
                                 <th>V-ID</th>
                                 <th>Customer</th>
-                                <th>Mobile</th>
                                 <th>Pickup City</th>
                                 <th>Drop City</th>
                                 <th>Pickup Time</th>
@@ -151,15 +150,15 @@ const VehicleSeparateReport = () => {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="15" style={{ textAlign: 'center', padding: '40px' }}>Loading report data...</td>
+                                    <td colSpan="14" style={{ textAlign: 'center', padding: '40px' }}>Loading report data...</td>
                                 </tr>
                             ) : !searched ? (
                                 <tr>
-                                    <td colSpan="15" style={{ textAlign: 'center', padding: '40px' }}>No data available in table</td>
+                                    <td colSpan="14" style={{ textAlign: 'center', padding: '40px' }}>No data available in table</td>
                                 </tr>
                             ) : filteredTrips.length === 0 ? (
                                 <tr>
-                                    <td colSpan="15" style={{ textAlign: 'center', padding: '40px' }}>No data available in table</td>
+                                    <td colSpan="14" style={{ textAlign: 'center', padding: '40px' }}>No data available in table</td>
                                 </tr>
                             ) : (
                                 filteredTrips.map((trip, index) => {
@@ -171,11 +170,10 @@ const VehicleSeparateReport = () => {
                                             <td>{trip.v_type}</td>
                                             <td style={{ fontWeight: 600 }}>{trip.v_id}</td>
                                             <td style={{ fontWeight: 600 }}>{trip.customer}</td>
-                                            <td>{trip.m_no}</td>
                                             <td>{trip.picup_place}</td>
                                             <td>{trip.drop_place}</td>
-                                            <td style={{ whiteSpace: 'nowrap' }}>{trip.pickup_time || trip.p_date}</td>
-                                            <td style={{ whiteSpace: 'nowrap' }}>{trip.drop_time || trip.d_date}</td>
+                                            <td style={{ whiteSpace: 'nowrap' }}>{fmtDateTime(trip.pickup_time || trip.p_date)}</td>
+                                            <td style={{ whiteSpace: 'nowrap' }}>{fmtDateTime(trip.drop_time || trip.d_date)}</td>
                                             <td style={{ textAlign: 'right', fontWeight: 600 }}>{trip.opening_km}</td>
                                             <td style={{ textAlign: 'right', fontWeight: 600 }}>{trip.closing_km}</td>
                                             <td style={{ textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>{totalKms}</td>

@@ -36,8 +36,22 @@ const Bookings = () => {
     const [distanceSuggestions, setDistanceSuggestions] = useState([]);
     const [loadingDistanceSuggestions, setLoadingDistanceSuggestions] = useState(false);
 
+    // Booking ID & count
+    const [nextBookingId, setNextBookingId] = useState(null);
+    const [totalBookings, setTotalBookings] = useState(null);
+
     // Form State
     const [formData, setFormData] = useState(initialForm);
+
+    // Fetch next booking ID and total count on mount
+    useEffect(() => {
+        api.get('/bookings.php?action=next_id')
+            .then(res => {
+                setNextBookingId(res.data.next_id);
+                setTotalBookings(res.data.total);
+            })
+            .catch(() => {});
+    }, []);
 
     // Close suggestions when clicking outside
     useEffect(() => {
@@ -184,8 +198,11 @@ const Bookings = () => {
         try {
             await api.post('/customers.php', { m_no: formData.m_no, b_name: formData.b_name });
             const userId = user?.emp_id || user?.id;
-            await api.post('/bookings.php', { ...formData, user_id: userId });
+            const bookingRes = await api.post('/bookings.php', { ...formData, user_id: userId });
+            const savedId = bookingRes.data?.b_id;
             resetForm();
+            setNextBookingId(savedId ? savedId + 1 : null);
+            setTotalBookings(prev => prev !== null ? prev + 1 : null);
             toast('Booking Registered Successfully! Redirecting to Assign page to dispatch driver.');
             navigate('/assignments');
         } catch (error) {
@@ -197,17 +214,42 @@ const Bookings = () => {
     return (
         <div className="page-wrap">
             <div className="page-header">
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <div>
                         <h1>Register New Booking</h1>
                         <p>Fill in the details below to register a new trip booking</p>
                     </div>
+                    {totalBookings !== null && (
+                        <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 20px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)' }}>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 700 }}>Total Bookings</div>
+                            <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', lineHeight: 1.1 }}>{totalBookings}</div>
+                        </div>
+                    )}
                 </div>
             </div>
 
             <div className="page-body">
                 <form id="bookingForm" onSubmit={handleSubmit}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+
+                        {/* Booking ID Banner */}
+                        {nextBookingId !== null && (
+                            <div style={{ background: 'linear-gradient(135deg, #023149 0%, #0c4a6e 100%)', borderRadius: 10, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                                    <span className="material-icons" style={{ color: '#fbbf24', fontSize: 26 }}>confirmation_number</span>
+                                    <div>
+                                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 700 }}>New Booking Reference</div>
+                                        <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '.04em', fontFamily: 'monospace' }}>
+                                            BK-{String(nextBookingId).padStart(4, '0')}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>This ID will be saved on confirm</div>
+                                    <div style={{ fontSize: 13, color: '#86efac', fontWeight: 700 }}>{totalBookings} total bookings registered</div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Customer Identity Profile */}
                         <div>
@@ -316,9 +358,7 @@ const Bookings = () => {
                                 </div>
                                 <div className="form-field" style={{ margin: 0 }}>
                                     <label>Passenger Count</label>
-                                    <select name="cus_count" value={formData.cus_count} onChange={handleInputChange}>
-                                        {[...Array(20)].map((_, i) => <option key={i + 1} value={i + 1}>{i + 1} Pax</option>)}
-                                    </select>
+                                    <input type="number" name="cus_count" value={formData.cus_count} onChange={handleInputChange} min="1" placeholder="e.g. 4" />
                                 </div>
                             </div>
                         </div>
@@ -344,20 +384,19 @@ const Bookings = () => {
                                         <span>Specific Model</span>
                                         {loadingModels && <span style={{ color: '#2563eb', fontSize: 10 }}>Loading...</span>}
                                     </label>
-                                    <input
-                                        type="text"
+                                    <select
                                         name="v_name"
                                         value={formData.v_name}
                                         onChange={handleVehicleModelChange}
                                         disabled={!formData.v_type || loadingModels}
-                                        list="model_suggestions"
-                                        placeholder={`Any ${formData.v_type ? `${formData.v_type} ` : ''}Model`}
-                                    />
-                                    <datalist id="model_suggestions">
+                                    >
+                                        <option value="">
+                                            {!formData.v_type ? 'Select vehicle class first' : loadingModels ? 'Loading...' : `Any ${formData.v_type} Model`}
+                                        </option>
                                         {vehicleModels.map((model, idx) => (
-                                            <option key={idx} value={model} />
+                                            <option key={idx} value={model}>{model}</option>
                                         ))}
-                                    </datalist>
+                                    </select>
                                 </div>
                                 <div className="form-field" style={{ margin: 0 }}>
                                     <label>A/C Preference</label>

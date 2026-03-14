@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { fmtDate } from '../utils/dateFormat';
 
 const CompanyReport = () => {
     const toast = useToast();
@@ -169,8 +170,8 @@ const CompanyReport = () => {
                                         <td style={{ textAlign: 'center' }}><input type="checkbox" /></td>
                                         <td style={{ fontWeight: 800, color: '#023149' }}>{record.trip_id}</td>
                                         <td style={{ fontWeight: 600 }}>{record.guest_name}</td>
-                                        <td style={{ whiteSpace: 'nowrap' }}>{record.date}</td>
-                                        <td style={{ whiteSpace: 'nowrap' }}>{record.date}</td>
+                                        <td style={{ whiteSpace: 'nowrap' }}>{fmtDate(record.date)}</td>
+                                        <td style={{ whiteSpace: 'nowrap' }}>{fmtDate(record.date)}</td>
                                         <td>{record.pickup_city || 'City'}</td>
                                         <td>{record.drop_city || 'City'}</td>
                                         <td>{record.v_type || 'Vehicle'}</td>

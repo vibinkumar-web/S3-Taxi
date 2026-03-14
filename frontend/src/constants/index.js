@@ -157,3 +157,10 @@ export const AC_TYPE = {
 export const STORAGE_KEYS = {
   USER: 'user',
 };
+
+/* ─────────────────────────────────────────
+   BOOKING ID FORMATTER
+   Formats a numeric b_id as BK-XXXX for display across the app.
+   Database and API always use the plain integer.
+───────────────────────────────────────── */
+export const formatBookingId = (id) => `BK-${String(id ?? 0).padStart(4, '0')}`;

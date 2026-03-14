@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { useToast } from '../context/ToastContext';
+import { fmtDateTime } from '../utils/dateFormat';
 
         
 
@@ -13,6 +14,9 @@ const { api } = useContext(AuthContext);
     const [loading, setLoading] = useState(true);
     const [singleVid, setSingleVid] = useState('');
     const [loggingOut, setLoggingOut] = useState(false);
+    const [loginVid, setLoginVid] = useState('');
+    const [loginLocation, setLoginLocation] = useState('');
+    const [loggingIn, setLoggingIn] = useState(false);
 
     useEffect(() => {
         fetchActiveVehicles();
@@ -28,6 +32,31 @@ const { api } = useContext(AuthContext);
             console.error("Error fetching active vehicles", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleLoginSingle = async (e) => {
+        e.preventDefault();
+        if (!loginVid.trim()) { toast('Please enter a Vehicle ID.', 'error'); return; }
+        setLoggingIn(true);
+        try {
+            const res = await api.post('/vehicle_in_out.php', {
+                action: 'login_single',
+                v_id: loginVid.trim(),
+                location: loginLocation.trim()
+            });
+            if (res.data.status === 'success') {
+                toast(`Vehicle ${loginVid} logged in successfully.`);
+                setLoginVid('');
+                setLoginLocation('');
+                fetchActiveVehicles();
+            } else {
+                toast(res.data.message || 'Login failed.', 'error');
+            }
+        } catch (err) {
+            toast(err.response?.data?.message || 'Vehicle not found or already logged in.', 'error');
+        } finally {
+            setLoggingIn(false);
         }
     };
 
@@ -94,73 +123,97 @@ const { api } = useContext(AuthContext);
             </div>
 
             <div className="page-body">
-                {/* Top Control Bar */}
-                <div className="section" style={{ display: 'flex', gap: 24, alignItems: 'center', justifyContent: 'space-between', padding: '24px 32px', marginBottom: 24, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
 
-                    {/* View all active & Logout ALL */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <div style={{ padding: '8px 16px', background: '#e0f2fe', color: '#0369a1', borderRadius: 8, fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span className="material-icons" style={{ fontSize: 18 }}>radar</span>
-                            {loading ? '...' : vehicles.length} Vehicles Currently Active
+                {/* Combined Control Bar */}
+                <div className="section" style={{ padding: '20px 28px', marginBottom: 24, background: '#fff', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', gap: 0, alignItems: 'stretch', flexWrap: 'wrap' }}>
+
+                        {/* Active count */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 24px 0 0', marginRight: 24, borderRight: '1px solid #e2e8f0' }}>
+                            <span className="material-icons" style={{ fontSize: 20, color: '#0369a1' }}>radar</span>
+                            <div>
+                                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>Active</div>
+                                <div style={{ fontSize: 22, fontWeight: 900, color: '#023149', lineHeight: 1 }}>{loading ? '…' : vehicles.length}</div>
+                            </div>
                         </div>
 
-                        <button
-                            onClick={handleLogoutAll}
-                            disabled={loggingOut || vehicles.length === 0}
-                            style={{
-                                padding: '10px 24px',
-                                background: '#dc2626',
-                                color: '#white',
-                                borderRadius: 8,
-                                fontWeight: 700,
-                                fontSize: 14,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                border: 'none',
-                                cursor: (loggingOut || vehicles.length === 0) ? 'not-allowed' : 'pointer',
-                                opacity: (loggingOut || vehicles.length === 0) ? 0.6 : 1,
-                                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)'
-                            }}
-                            onMouseEnter={e => { if (!loggingOut && vehicles.length > 0) e.currentTarget.style.background = '#b91c1c' }}
-                            onMouseLeave={e => { if (!loggingOut && vehicles.length > 0) e.currentTarget.style.background = '#dc2626' }}
-                        >
-                            <span className="material-icons" style={{ fontSize: 18 }}>power_settings_new</span>
-                            {loggingOut ? 'Processing...' : 'All Vehicle Logout'}
-                        </button>
+                        {/* LOGIN section */}
+                        <div style={{ marginRight: 24, paddingRight: 24, borderRight: '1px solid #e2e8f0' }}>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: '#15803d', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span className="material-icons" style={{ fontSize: 14 }}>login</span> Login Vehicle
+                            </div>
+                            <form onSubmit={handleLoginSingle} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Vehicle ID"
+                                    value={loginVid}
+                                    onChange={e => setLoginVid(e.target.value)}
+                                    style={{ height: 38, padding: '0 12px', width: 120, fontSize: 13, fontWeight: 700, border: '1px solid #86efac', borderRadius: 6, outline: 'none', color: '#023149' }}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Location"
+                                    value={loginLocation}
+                                    onChange={e => setLoginLocation(e.target.value)}
+                                    style={{ height: 38, padding: '0 12px', width: 140, fontSize: 13, border: '1px solid #86efac', borderRadius: 6, outline: 'none', color: '#023149' }}
+                                />
+                                <button type="submit" disabled={loggingIn || !loginVid.trim()} style={{
+                                    height: 38, padding: '0 18px', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13,
+                                    background: loggingIn || !loginVid.trim() ? '#e2e8f0' : '#15803d',
+                                    color: loggingIn || !loginVid.trim() ? '#94a3b8' : '#fff',
+                                    cursor: loggingIn || !loginVid.trim() ? 'not-allowed' : 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: 6
+                                }}>
+                                    <span className="material-icons" style={{ fontSize: 15 }}>how_to_reg</span>
+                                    {loggingIn ? 'Logging in…' : 'Login'}
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* LOGOUT section */}
+                        <div style={{ marginRight: 24, paddingRight: 24, borderRight: '1px solid #e2e8f0' }}>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: '#c5111a', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <span className="material-icons" style={{ fontSize: 14 }}>logout</span> Logout Vehicle
+                            </div>
+                            <form onSubmit={handleLogoutSingle} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Vehicle ID"
+                                    value={singleVid}
+                                    onChange={e => setSingleVid(e.target.value)}
+                                    style={{ height: 38, padding: '0 12px', width: 120, fontSize: 13, fontWeight: 700, border: '1px solid #fecaca', borderRadius: 6, outline: 'none', color: '#023149' }}
+                                />
+                                <button type="submit" disabled={loggingOut || !singleVid.trim()} style={{
+                                    height: 38, padding: '0 18px', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13,
+                                    background: loggingOut || !singleVid.trim() ? '#e2e8f0' : '#c5111a',
+                                    color: loggingOut || !singleVid.trim() ? '#94a3b8' : '#fff',
+                                    cursor: loggingOut || !singleVid.trim() ? 'not-allowed' : 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: 6
+                                }}>
+                                    <span className="material-icons" style={{ fontSize: 15 }}>power_settings_new</span>
+                                    {loggingOut ? 'Processing…' : 'Logout'}
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* Logout ALL */}
+                        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                            <div>
+                                <div style={{ fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Mass Action</div>
+                                <button onClick={handleLogoutAll} disabled={loggingOut || vehicles.length === 0} style={{
+                                    height: 38, padding: '0 18px', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13,
+                                    background: loggingOut || vehicles.length === 0 ? '#e2e8f0' : '#7f1d1d',
+                                    color: loggingOut || vehicles.length === 0 ? '#94a3b8' : '#fff',
+                                    cursor: loggingOut || vehicles.length === 0 ? 'not-allowed' : 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: 6
+                                }}>
+                                    <span className="material-icons" style={{ fontSize: 15 }}>power_settings_new</span>
+                                    {loggingOut ? 'Processing…' : 'Logout All'}
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
-
-                    {/* Single Vehicle Logout Form */}
-                    <form onSubmit={handleLogoutSingle} style={{ display: 'flex', alignItems: 'stretch', gap: 0, overflow: 'hidden', borderRadius: 8, border: '1px solid #cbd5e1', boxShadow: '0 2px 4px rgba(0,0,0,.05)' }}>
-                        <div style={{ padding: '10px 16px', background: '#f1f5f9', color: '#475569', fontWeight: 600, fontSize: 14, borderRight: '1px solid #cbd5e1', display: 'flex', alignItems: 'center' }}>
-                            Vehicle ID
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="e.g. 640"
-                            value={singleVid}
-                            onChange={(e) => setSingleVid(e.target.value)}
-                            style={{ padding: '10px 16px', border: 'none', outline: 'none', width: 140, fontSize: 14, fontWeight: 600, color: '#023149' }}
-                            require
-                        />
-                        <button
-                            type="submit"
-                            disabled={loggingOut || !singleVid.trim()}
-                            style={{
-                                padding: '10px 20px',
-                                background: '#023149',
-                                color: '#fff',
-                                border: 'none',
-                                fontWeight: 700,
-                                fontSize: 14,
-                                cursor: (loggingOut || !singleVid.trim()) ? 'not-allowed' : 'pointer',
-                                opacity: (loggingOut || !singleVid.trim()) ? 0.7 : 1
-                            }}
-                        >
-                            Log Out
-                        </button>
-                    </form>
-
                 </div>
 
                 {/* Active Vehicles Table */}
@@ -217,7 +270,7 @@ const { api } = useContext(AuthContext);
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right', fontWeight: 600, color: '#15803d', fontSize: 13 }}>
-                                            {v.login_time}
+                                            {fmtDateTime(v.login_time)}
                                         </td>
                                     </tr>
                                 ))

@@ -12,6 +12,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const MonthYearPicker = ({ value, onChange, placeholder = 'Select month' }) => {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
+    const dropdownRef = useRef(null);
 
     // Parse current value
     const parsed = value ? { year: parseInt(value.split('-')[0]), month: parseInt(value.split('-')[1]) - 1 } : null;
@@ -29,6 +30,20 @@ const MonthYearPicker = ({ value, onChange, placeholder = 'Select month' }) => {
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
+
+    // Auto-flip dropdown if it overflows the right edge of the viewport
+    useEffect(() => {
+        if (open && dropdownRef.current) {
+            const rect = dropdownRef.current.getBoundingClientRect();
+            if (rect.right > window.innerWidth - 8) {
+                dropdownRef.current.style.left = 'auto';
+                dropdownRef.current.style.right = '0';
+            } else {
+                dropdownRef.current.style.left = '0';
+                dropdownRef.current.style.right = 'auto';
+            }
+        }
+    }, [open]);
 
     const selectMonth = (monthIndex) => {
         const mm = String(monthIndex + 1).padStart(2, '0');
@@ -82,7 +97,7 @@ const MonthYearPicker = ({ value, onChange, placeholder = 'Select month' }) => {
 
             {/* Dropdown */}
             {open && (
-                <div style={{
+                <div ref={dropdownRef} style={{
                     position: 'absolute',
                     top: 'calc(100% + 6px)',
                     left: 0,

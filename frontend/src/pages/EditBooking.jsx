@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { useToast } from '../context/ToastContext';
-import { API, DATE_RANGE_ALL } from '../constants';
+import { API, DATE_RANGE_ALL, formatBookingId } from '../constants';
 
 
 
@@ -99,7 +99,7 @@ const handleChange = (e) => {
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #fdf6e8', paddingBottom: 16, marginBottom: 24 }}>
                                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#023149', display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <span className="material-icons" style={{ color: '#c5111a', fontSize: 20 }}>edit_document</span>
-                                    Booking Details — #{bookingData.b_id}
+                                    Booking Details — {formatBookingId(bookingData.b_id)}
                                 </h3>
                                 <span className="badge badge-yellow">Modify Mode</span>
                             </div>

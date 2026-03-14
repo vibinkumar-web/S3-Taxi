@@ -98,8 +98,8 @@ const AdvanceBookings = () => {
                                                 b.v_types || '-',
                                                 b.q || '-',
                                                 b.d_mobile || '-',
-                                                b.cus_name || '-',
-                                                b.cus_mobile || '-',
+                                                b.b_name || '-',
+                                                b.m_no || '-',
                                                 b.r_status || 'Staff',
                                                 b.remarks || '-',
                                             ].map((val, ci) => (

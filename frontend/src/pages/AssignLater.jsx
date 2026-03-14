@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { fmtDateTime } from '../utils/dateFormat';
 
 
 
@@ -228,7 +229,7 @@ const AssignLater = () => {
                                                             <strong style={{ color: '#023149' }}>{d.vacant_place}</strong>
                                                         </div>
                                                         <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                                                            Registered login: {d.login_time}
+                                                            Registered login: {fmtDateTime(d.login_time)}
                                                         </div>
                                                     </div>
                                                 </div>

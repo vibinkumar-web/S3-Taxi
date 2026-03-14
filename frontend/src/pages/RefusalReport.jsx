@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { fmtDate } from '../utils/dateFormat';
 
 const RefusalReport = () => {
     const toast = useToast();
@@ -167,7 +168,7 @@ const RefusalReport = () => {
                             ) : (
                                 reportData.map((record, index) => (
                                     <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                        <td style={{ padding: '12px 24px', fontWeight: 600, color: '#475569', fontSize: 13 }}>{record.date_refused}</td>
+                                        <td style={{ padding: '12px 24px', fontWeight: 600, color: '#475569', fontSize: 13 }}>{fmtDate(record.date_refused)}</td>
                                         <td style={{ padding: '12px 24px', fontWeight: 800, color: '#023149', fontFamily: 'monospace', fontSize: 13 }}>#{record.b_id}</td>
                                         <td style={{ padding: '12px 24px', fontWeight: 800, color: '#023149', fontSize: 14 }}>{record.v_id}</td>
                                         <td style={{ padding: '12px 24px' }}>

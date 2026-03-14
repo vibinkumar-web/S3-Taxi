@@ -55,7 +55,8 @@ if ($method === 'GET') {
     }
 
     // Main fetch for available vehicles
-    $query = "SELECT f.id, f.v_cat, f.v_brand, f.v_model, f.v_no, f.d_name, f.d_mobile, f.vacant_place
+    $query = "SELECT f.id, f.v_id, f.v_cat, f.v_brand, f.v_model, f.v_no, f.d_name, f.d_mobile, f.vacant_place,
+                     COALESCE((SELECT MAX(CAST(c.closing_km AS UNSIGNED)) FROM f_closing c WHERE c.v_id = f.v_id), 0) AS last_km
               FROM f_v_attach f
               WHERE f.v_no NOT IN (
                   SELECT v_no FROM f_ontrip WHERE on_trip_status = '1'

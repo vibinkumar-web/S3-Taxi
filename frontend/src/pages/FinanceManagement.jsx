@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import AuthContext from '../context/AuthContext';
 import MonthYearPicker from '../components/MonthYearPicker';
+import { fmtDate } from '../utils/dateFormat';
 
 const EXPENSE_CATEGORIES = ['Rent', 'EB Bill', 'Network Bill', 'Staff Salary', 'Maintenance', 'Other'];
 
@@ -44,6 +45,35 @@ const FinanceManagement = () => {
     const [vcTracking, setVcTracking] = useState(null);   // API result
     const [vcLoading, setVcLoading] = useState(false);
     const vcDebounce = useRef(null);
+
+    // All Vehicles Commission Overview
+    const [allVcData, setAllVcData] = useState(null);
+    const [allVcLoading, setAllVcLoading] = useState(false);
+    const [allVcSearch, setAllVcSearch] = useState('');
+    const [allVcAllTime, setAllVcAllTime] = useState(false);
+    const allVcDebounce = useRef(null);
+
+    const fetchAllVehicleCommissions = useCallback(async (month, search, allTime) => {
+        setAllVcLoading(true);
+        try {
+            let q = `/finance.php?action=all_vehicle_commissions&month=${month}`;
+            if (allTime) q += '&all_time=1';
+            if (search) q += `&v_id=${encodeURIComponent(search)}`;
+            const res = await api.get(q);
+            if (res.data.status === 'success') setAllVcData(res.data);
+            else setAllVcData(null);
+        } catch { setAllVcData(null); }
+        finally { setAllVcLoading(false); }
+    }, [api]);
+
+    // Debounced fetch when month, search, or allTime changes
+    useEffect(() => {
+        clearTimeout(allVcDebounce.current);
+        allVcDebounce.current = setTimeout(() => {
+            fetchAllVehicleCommissions(vcMonth, allVcSearch, allVcAllTime);
+        }, 400);
+        return () => clearTimeout(allVcDebounce.current);
+    }, [vcMonth, allVcSearch, allVcAllTime, fetchAllVehicleCommissions]);
 
     const fetchVehicleCommission = useCallback(async (v_id, month) => {
         if (!v_id || v_id.trim().length < 1) { setVcTracking(null); return; }
@@ -226,7 +256,7 @@ const FinanceManagement = () => {
         <table><thead><tr><th>#</th><th>Date</th><th>Type</th><th>Category</th><th>Vehicle</th><th>Description</th><th style='text-align:right'>Amount (₹)</th></tr></thead>
         <tbody>${rows.map(tx => `<tr>
           <td>${tx.id}</td>
-          <td>${new Date(tx.transaction_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+          <td>${fmtDate(tx.transaction_date)}</td>
           <td><span class='badge badge-${tx.type}'>${tx.type}</span></td>
           <td>${tx.category || '—'}</td>
           <td>${tx.v_id || '—'}</td>
@@ -472,6 +502,120 @@ const FinanceManagement = () => {
 
                 </div>
 
+                {/* ── All Vehicles Commission Overview ── */}
+                <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px rgba(2,49,73,.06)', borderTop: '4px solid #6366f1' }}>
+                    {/* Header */}
+                    <div style={{ padding: '18px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span className="material-icons" style={{ color: '#6366f1', fontSize: 22 }}>table_chart</span>
+                            <div>
+                                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#0f172a' }}>All Vehicles — Monthly Commission</h2>
+                                <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>Per-vehicle trip totals & 10% commission due for selected month</p>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <input
+                                type="text"
+                                placeholder="Search vehicle ID / name..."
+                                value={allVcSearch}
+                                onChange={e => setAllVcSearch(e.target.value)}
+                                style={{ height: 36, padding: '0 12px', fontSize: 13, border: '1px solid #e2e8f0', borderRadius: 6, outline: 'none', width: 200 }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setAllVcAllTime(v => !v)}
+                                style={{
+                                    height: 36, padding: '0 14px', borderRadius: 6, fontWeight: 700, fontSize: 12,
+                                    border: `1.5px solid ${allVcAllTime ? '#6366f1' : '#e2e8f0'}`,
+                                    background: allVcAllTime ? '#eff0ff' : '#fff',
+                                    color: allVcAllTime ? '#6366f1' : '#64748b',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5
+                                }}
+                            >
+                                <span className="material-icons" style={{ fontSize: 15 }}>all_inclusive</span>
+                                All Time
+                            </button>
+                            {!allVcAllTime && (
+                                <MonthYearPicker value={vcMonth} onChange={setVcMonth} placeholder="Pick month" />
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Totals Bar */}
+                    {allVcData?.totals && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0, borderBottom: '1px solid #e2e8f0' }}>
+                            {[
+                                { label: 'Vehicles', val: allVcData.vehicles.length, color: '#6366f1' },
+                                { label: 'Total Trips', val: allVcData.totals.trip_count, color: '#023149' },
+                                { label: 'Total Earnings', val: `₹${parseFloat(allVcData.totals.total_earnings).toLocaleString('en-IN')}`, color: '#023149' },
+                                { label: '10% Due', val: `₹${parseFloat(allVcData.totals.commission_due).toLocaleString('en-IN')}`, color: '#1e40af' },
+                                { label: 'Pending', val: `₹${parseFloat(allVcData.totals.commission_pending).toLocaleString('en-IN')}`, color: allVcData.totals.commission_pending > 0 ? '#ea580c' : '#16a34a' },
+                            ].map((item, i) => (
+                                <div key={i} style={{ padding: '12px 20px', borderRight: i < 4 ? '1px solid #f1f5f9' : 'none', background: '#f8fafc' }}>
+                                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: '#6b7280', marginBottom: 2 }}>{item.label}</div>
+                                    <div style={{ fontSize: 18, fontWeight: 900, color: item.color }}>{item.val}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Table */}
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ background: '#f8fafc' }}>
+                                    {['Vehicle ID', 'Driver', 'Veh No', 'Trips', 'Total Earnings', '10% Due', 'Paid', 'Pending / Cleared'].map(h => (
+                                        <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', textAlign: h === 'Trips' ? 'center' : 'left', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {allVcLoading ? (
+                                    <tr><td colSpan="8" style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8', fontSize: 13 }}>
+                                        <span className="material-icons" style={{ fontSize: 16, marginRight: 6, verticalAlign: 'middle' }}>sync</span>
+                                        Loading vehicles...
+                                    </td></tr>
+                                ) : !allVcData || allVcData.vehicles.length === 0 ? (
+                                    <tr><td colSpan="8" style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8', fontSize: 13 }}>
+                                        No vehicle trips found {allVcAllTime ? 'in the database.' : `for ${vcMonth}.`}
+                                    </td></tr>
+                                ) : allVcData.vehicles.map((v, i) => {
+                                    const pending = parseFloat(v.commission_pending);
+                                    const due     = parseFloat(v.commission_due);
+                                    const paid    = parseFloat(v.commission_paid);
+                                    const cleared = pending === 0 && due > 0;
+                                    return (
+                                        <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}
+                                            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                                            onMouseLeave={e => e.currentTarget.style.background = ''}>
+                                            <td style={{ padding: '10px 14px' }}>
+                                                <span style={{ fontWeight: 800, color: '#023149', fontFamily: 'monospace', background: '#f1f5f9', padding: '2px 8px', borderRadius: 4, fontSize: 13 }}>{v.v_id}</span>
+                                            </td>
+                                            <td style={{ padding: '10px 14px', fontWeight: 600, color: '#334155', fontSize: 13 }}>{v.d_name || '—'}</td>
+                                            <td style={{ padding: '10px 14px', color: '#475569', fontSize: 13 }}>{v.v_no || '—'}</td>
+                                            <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 800, color: '#023149', fontSize: 15 }}>{v.trip_count}</td>
+                                            <td style={{ padding: '10px 14px', fontWeight: 700, color: '#023149' }}>₹{parseFloat(v.total_earnings).toLocaleString('en-IN')}</td>
+                                            <td style={{ padding: '10px 14px', fontWeight: 800, color: '#1e40af' }}>₹{parseFloat(v.commission_due).toLocaleString('en-IN')}</td>
+                                            <td style={{ padding: '10px 14px', fontWeight: 700, color: paid > 0 ? '#166534' : '#94a3b8' }}>
+                                                {paid > 0 ? `₹${paid.toLocaleString('en-IN')}` : '—'}
+                                            </td>
+                                            <td style={{ padding: '10px 14px' }}>
+                                                {cleared ? (
+                                                    <span style={{ background: '#dcfce7', color: '#166534', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 700 }}>✓ Cleared</span>
+                                                ) : (
+                                                    <span style={{ background: pending > 0 ? '#fff7ed' : '#f1f5f9', color: pending > 0 ? '#ea580c' : '#94a3b8', padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 700 }}>
+                                                        {pending > 0 ? `⚠ ₹${pending.toLocaleString('en-IN')}` : '—'}
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 {/* ── Combined Ledger Table ── */}
                 <div className="section" id="print-ledger">
 
@@ -571,7 +715,7 @@ const FinanceManagement = () => {
                                     <tr key={tx.id}>
                                         <td style={{ fontSize: 12, color: '#94a3b8' }}>{tx.id}</td>
                                         <td style={{ fontSize: 13, color: '#475569', whiteSpace: 'nowrap' }}>
-                                            {new Date(tx.transaction_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            {fmtDate(tx.transaction_date)}
                                         </td>
                                         <td>
                                             <span style={{ ...TYPE_BADGE[tx.type] || TYPE_BADGE.commission, padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700, textTransform: 'capitalize' }}>

@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { fmtDate } from '../utils/dateFormat';
 
 const CustomerReport = () => {
     const toast = useToast();
@@ -102,7 +103,6 @@ const CustomerReport = () => {
                                 <th>Date</th>
                                 <th>B-ID</th>
                                 <th>Customer</th>
-                                <th>Mobile</th>
                                 <th>Pickup City</th>
                                 <th>Drop City</th>
                             </tr>
@@ -110,24 +110,23 @@ const CustomerReport = () => {
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>Loading records...</td>
+                                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>Loading records...</td>
                                 </tr>
                             ) : !searched ? (
                                 <tr>
-                                    <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>No records found. Setup a search and click the Search button to begin!</td>
+                                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>No records found. Setup a search and click the Search button to begin!</td>
                                 </tr>
                             ) : filteredData.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>No customer records found for this timeframe.</td>
+                                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>No customer records found for this timeframe.</td>
                                 </tr>
                             ) : (
                                 filteredData.map((record, index) => (
                                     <tr key={index}>
                                         <td style={{ fontWeight: 600, color: '#64748b' }}>{index + 1}</td>
-                                        <td style={{ whiteSpace: 'nowrap' }}>{record.p_date}</td>
+                                        <td style={{ whiteSpace: 'nowrap' }}>{fmtDate(record.p_date)}</td>
                                         <td style={{ fontWeight: 800, color: '#023149' }}>{record.bid}</td>
                                         <td style={{ fontWeight: 700 }}>{record.customer}</td>
-                                        <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{record.m_no}</td>
                                         <td>{record.picup_place || 'City'}</td>
                                         <td>{record.drop_place || 'City'}</td>
                                     </tr>

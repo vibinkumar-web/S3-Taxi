@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { fmtDate } from '../utils/dateFormat';
 
 const ShortageKMReport = () => {
     const toast = useToast();
@@ -161,7 +162,7 @@ const ShortageKMReport = () => {
                                         <td style={{ textAlign: 'right', fontWeight: 600, color: '#64748b' }}>{gap.prev_closing_km}</td>
                                         <td style={{ textAlign: 'right', fontWeight: 600, color: '#64748b' }}>{gap.curr_opening_km}</td>
                                         <td style={{ textAlign: 'right', fontWeight: 800, color: '#dc2626' }}>{gap.shortage_km}</td>
-                                        <td style={{ whiteSpace: 'nowrap', color: '#475569' }}>{gap.date} {gap.time}</td>
+                                        <td style={{ whiteSpace: 'nowrap', color: '#475569' }}>{fmtDate(gap.date)} {gap.time}</td>
                                     </tr>
                                 ))
                             )}

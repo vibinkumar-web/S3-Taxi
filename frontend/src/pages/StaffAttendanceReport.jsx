@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { fmtDateTime } from '../utils/dateFormat';
 
 const StaffAttendanceReport = () => {
     const toast = useToast();
@@ -150,10 +151,10 @@ const StaffAttendanceReport = () => {
                                         <tr key={index}>
                                             <td style={{ padding: '12px 16px', fontWeight: 600, color: '#64748b' }}>{index + 1}</td>
                                             <td style={{ padding: '12px 16px' }}>
-                                                {loginDate.toLocaleDateString()} {loginDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {fmtDateTime(record.login_time)}
                                             </td>
                                             <td style={{ padding: '12px 16px' }}>
-                                                {logoutDate ? `${logoutDate.toLocaleDateString()} ${logoutDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '-'}
+                                                {logoutDate ? fmtDateTime(record.logout) : '—'}
                                             </td>
                                             <td style={{ padding: '12px 16px', fontWeight: 600 }}>{workingHrs}</td>
                                         </tr>
