@@ -100,8 +100,7 @@ if ($method === 'GET') {
             remarks = :remarks,
             b_now = '0',
             assign = '0',
-            user_id = :user_id,
-            advance = :advance";
+            user_id = :user_id";
 
         $stmt = $db->prepare($query);
 
@@ -129,8 +128,6 @@ if ($method === 'GET') {
         $stmt->bindParam(":b_type", $data->b_type);
         $stmt->bindParam(":remarks", $data->remarks);
         $stmt->bindParam(":user_id", $data->user_id);
-        $advance = !empty($data->advance) ? $data->advance : 0;
-        $stmt->bindParam(":advance", $advance);
 
         try {
             if ($stmt->execute()) {
