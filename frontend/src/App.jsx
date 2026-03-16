@@ -42,6 +42,7 @@ import CustomerUpload from './pages/CustomerUpload';
 import AssignLater from './pages/AssignLater';
 import BookingCounts from './pages/BookingCounts';
 import EditClosedTrip from './pages/EditClosedTrip';
+import VehicleTracking from './pages/VehicleTracking';
 import UserActivityReport from './pages/UserActivityReport';
 import VehicleSeparateReport from './pages/VehicleSeparateReport';
 import UserRights from './pages/UserRights';
@@ -155,6 +156,7 @@ function App() {
                 <Route path="/local-trip-closing" element={<ProtectedRoute><LocalTripClosing /></ProtectedRoute>} />
                 <Route path="/display-bookings" element={<ProtectedRoute><DisplayBookings /></ProtectedRoute>} />
                 <Route path="/user-logs" element={<ProtectedRoute><UserLogs /></ProtectedRoute>} />
+                <Route path="/vehicle-tracking" element={<ProtectedRoute><VehicleTracking /></ProtectedRoute>} />
               </Route>
             </Routes>
           </div>

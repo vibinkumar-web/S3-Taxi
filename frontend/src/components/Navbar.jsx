@@ -264,6 +264,7 @@ const Navbar = () => {
                                 <Sub to="/vehicles"            onClick={() => setOpen(null)}>Vehicles</Sub>
                                 <Sub to="/vehicle-attendance"  onClick={() => setOpen(null)}>Vehicle Attendance</Sub>
                                 <Sub to="/vehicle-in-out"      onClick={() => setOpen(null)}>Vehicle In & Out</Sub>
+                                <Sub to="/vehicle-tracking"    onClick={() => setOpen(null)}>Vehicle Tracking</Sub>
                                 <Sub to="/attached-vehicles"   onClick={() => setOpen(null)}>Attached Vehicles</Sub>
                                 {user.role === 'admin' && (<>
                                     <div style={{ margin: '8px 0', borderTop: '1px solid #fdf6e8' }} />
@@ -461,6 +462,7 @@ const Navbar = () => {
                             <MobileLink to="/vehicles"           onClick={closeMob}>Vehicles</MobileLink>
                             <MobileLink to="/vehicle-attendance" onClick={closeMob}>Vehicle Attendance</MobileLink>
                             <MobileLink to="/vehicle-in-out"     onClick={closeMob}>Vehicle In & Out</MobileLink>
+                            <MobileLink to="/vehicle-tracking"   onClick={closeMob}>Vehicle Tracking</MobileLink>
                             <MobileLink to="/attached-vehicles"  onClick={closeMob}>Attached Vehicles</MobileLink>
                             {user.role === 'admin' && (<>
                                 <MobileLink to="/staff"      onClick={closeMob}>Staff Master</MobileLink>

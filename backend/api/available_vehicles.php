@@ -54,12 +54,13 @@ if ($method === 'GET') {
         exit;
     }
 
-    // Main fetch for available vehicles
+    // Main fetch for available vehicles (logged in and not currently dispatched)
     $query = "SELECT f.id, f.v_id, f.v_cat, f.v_brand, f.v_model, f.v_no, f.d_name, f.d_mobile, f.vacant_place,
                      COALESCE((SELECT MAX(CAST(c.closing_km AS UNSIGNED)) FROM f_closing c WHERE c.v_id = f.v_id), 0) AS last_km
               FROM f_v_attach f
-              WHERE f.v_no NOT IN (
-                  SELECT v_no FROM f_ontrip WHERE on_trip_status = '1'
+              INNER JOIN f_login_status ls ON ls.id_emp = f.v_id AND ls.login_status = '1'
+              WHERE f.v_id NOT IN (
+                  SELECT v_id FROM f_ontrip WHERE already_assign = '1'
               )";
 
     if (!empty($v_cat)) {

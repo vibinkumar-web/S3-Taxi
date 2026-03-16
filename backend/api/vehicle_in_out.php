@@ -59,11 +59,11 @@ function update_logout($db, $id_emp, $login_time_str) {
 if ($method === 'GET') {
     // Fetch all currently logged-in vehicles (which act like drivers on the portal, emp_login might be null or 0 compared to staff)
     // For legacy, vehicles are marked by `v_type` OR joining `f_v_attach` to find vehicle IDs
-    $query = "SELECT l.id_emp as v_id, MAX(l.login_time) as login_time, v.vacant_place, v.v_no, v.d_name
+    $query = "SELECT l.id_emp as v_id, MAX(l.login_time) as login_time, v.vacant_place, v.v_no, v.d_name, v.v_cat, v.v_model
               FROM f_login_status l
               JOIN f_v_attach v ON l.id_emp = v.v_id
               WHERE l.login_status = '1'
-              GROUP BY l.id_emp, v.vacant_place, v.v_no, v.d_name
+              GROUP BY l.id_emp, v.vacant_place, v.v_no, v.d_name, v.v_cat, v.v_model
               ORDER BY login_time DESC";
               
     $stmt = $db->prepare($query);
@@ -108,6 +108,11 @@ if ($method === 'POST') {
         }
 
         $login_time = date('Y-m-d H:i:s');
+
+        // Clear stale dispatch records so old f_ontrip rows don't block availability
+        $clr = $db->prepare("UPDATE f_ontrip SET already_assign = '0' WHERE v_id = :v_id AND already_assign = '1'");
+        $clr->bindParam(':v_id', $v_id);
+        $clr->execute();
 
         // Delete all old/duplicate rows for this vehicle first, then insert clean
         $del = $db->prepare("DELETE FROM f_login_status WHERE id_emp = :v_id");

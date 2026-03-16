@@ -49,9 +49,9 @@ const AdminDashboard = ({ user, stats, navigate }) => {
     const cb = D.completed_bookings ?? 0;
     const ot = D.on_trip ?? 0;
     const up = D.advance_booking ?? 0;
-    const tv = D.total_drivers ?? 0;
-    const av = D.active_drivers ?? 0;
-    const iv = D.inactive_drivers ?? 0;
+    const tv = D.total_vehicles ?? 0;
+    const av = D.active_vehicles ?? 0;
+    const iv = D.inactive_vehicles ?? 0;
     const can = D.cancelled_booking ?? 0;
     const pa = D.pending_assignments ?? 0;
 

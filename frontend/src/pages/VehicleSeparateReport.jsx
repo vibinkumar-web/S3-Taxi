@@ -77,7 +77,7 @@ const VehicleSeparateReport = () => {
                         >
                             <option value="">Select ID</option>
                             {vehicles.map((v) => (
-                                <option key={v.v_id} value={v.v_id}>{v.v_name} ({v.v_no})</option>
+                                <option key={v.v_id} value={v.v_id}>{v.v_id}</option>
                             ))}
                         </select>
                     </div>

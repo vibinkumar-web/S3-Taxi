@@ -20,10 +20,12 @@ if ($method === 'GET') {
     if(isset($_GET['b_id'])) {
         $b_id = $_GET['b_id'];
         $query = "SELECT f.*,
+                    fva.d_name, fva.v_no, fva.v_model as v_model_name, fva.v_cat,
                     COALESCE(fva.v_model, f.v_type) as matched_vehicle,
                     COALESCE(et.kmnonac, 0) as kmnonac,
                     COALESCE(et.kmac, 0) as kmac,
-                    COALESCE(ac.config_value, '190') as base_fare
+                    COALESCE(ac.config_value, '190') as base_fare,
+                    COALESCE((SELECT MAX(CAST(closing_km AS UNSIGNED)) FROM f_closing WHERE v_id = f.v_id), 0) as last_km
                   FROM f_ontrip f
                   LEFT JOIN f_v_attach fva ON fva.v_id = f.v_id
                   LEFT JOIN enquery_tariff et ON et.id = (

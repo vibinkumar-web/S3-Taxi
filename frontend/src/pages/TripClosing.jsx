@@ -79,7 +79,12 @@ const TripClosing = () => {
     const fetchTripDetails = async (b_id) => {
         try {
             const response = await api.get(`/closing.php?b_id=${b_id}`);
-            setTripDetails(response.data);
+            const details = response.data;
+            setTripDetails(details);
+            // Auto-fill opening KM with last recorded KM for this vehicle
+            if (!details.open_km && details.last_km > 0) {
+                setOpeningKmInput(String(details.last_km));
+            }
             setLoading(false);
         } catch (error) {
             console.error("Error fetching trip details", error);
@@ -107,7 +112,21 @@ const TripClosing = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-
+    // Auto-recalculate whenever opening KM (from tripDetails) or any charge field changes,
+    // so Trip Distance and fare are always correct even if calculateFare ran before open_km was set.
+    useEffect(() => {
+        if (!tripDetails?.open_km || !formData.closing_km) return;
+        const openKm = parseFloat(tripDetails.open_km) || 0;
+        const closeKm = parseFloat(formData.closing_km) || 0;
+        if (closeKm <= 0 || closeKm < openKm) return;
+        const totalKm = closeKm - openKm;
+        const isAc = tripDetails.ac_type === '1' || tripDetails.ac_type === 'ac';
+        const ratePerKm = isAc ? parseFloat(tripDetails.kmac) || 0 : parseFloat(tripDetails.kmnonac) || 0;
+        const kmCharge = totalKm * ratePerKm;
+        const netTotal = baseFareConfig + kmCharge + parseFloat(formData.waiting_charges || 0) + parseFloat(formData.other_charge || 0) - parseFloat(formData.discount || 0);
+        setCalculated({ total_km: totalKm, km_charge: kmCharge, base_fare: baseFareConfig, rate_per_km: ratePerKm, net_total: netTotal });
+        setFormData(prev => ({ ...prev, paid_amount: netTotal }));
+    }, [tripDetails?.open_km, tripDetails?.ac_type, tripDetails?.kmac, tripDetails?.kmnonac, formData.closing_km, formData.waiting_charges, formData.other_charge, formData.discount, baseFareConfig]);
 
     const calculateFare = () => {
         if (!tripDetails) return;
@@ -309,6 +328,12 @@ const TripClosing = () => {
                                         <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Route:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#023149' }}>{tripDetails.p_city} &rarr; {tripDetails.d_place}</span></div>
                                         <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Vehicle:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#023149' }}>{tripDetails.v_type} <span style={{ color: '#6b7280', fontWeight: 400 }}>({tripDetails.v_id})</span></span></div>
                                         <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Pickup:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#475569' }}>{tripDetails.bookin_time}</span></div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                        <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Driver:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#023149' }}>{tripDetails.d_name || '—'}</span></div>
+                                        <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Driver Mobile:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#475569' }}>{tripDetails.d_mobile || '—'}</span></div>
+                                        <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Vehicle No:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#023149' }}>{tripDetails.v_no || '—'}</span></div>
+                                        <div><span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginRight: 8 }}>Model:</span> <span style={{ fontSize: 14, fontWeight: 600, color: '#475569' }}>{tripDetails.v_model_name || tripDetails.v_cat || '—'}</span></div>
                                     </div>
                                 </div>
 

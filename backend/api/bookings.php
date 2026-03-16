@@ -11,12 +11,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     // Return next booking ID and total count
     if (isset($_GET['action']) && $_GET['action'] === 'next_id') {
-        $stmtMax = $db->prepare("SELECT MAX(b_id) as max_id, COUNT(*) as total FROM f_ft_booking");
+        $stmtMax = $db->prepare("SELECT COUNT(*) as total FROM f_ft_booking");
         $stmtMax->execute();
         $row = $stmtMax->fetch(PDO::FETCH_ASSOC);
-        $max_id = (int)($row['max_id'] ?? 0);
-        $next_id = $max_id + 1;
-        echo json_encode(['next_id' => $next_id, 'last_id' => $max_id, 'total' => (int)$row['total']]);
+        $total = (int)$row['total'];
+        $next_id = $total + 1;
+        echo json_encode(['next_id' => $next_id, 'last_id' => $total, 'total' => $total]);
         exit;
     }
 
@@ -75,12 +75,10 @@ if ($method === 'GET') {
         !empty($data->pickup) &&
         !empty($data->m_no)
     ) {
-        // Calculate b_id
-        $queryMax = "SELECT MAX(b_id) as max_id FROM f_ft_booking";
-        $stmtMax = $db->prepare($queryMax);
-        $stmtMax->execute();
-        $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
-        $b_id = $rowMax['max_id'] + 1;
+        // Calculate b_id based on current count so IDs stay in sync with total records
+        $stmtCount = $db->prepare("SELECT COUNT(*) as total FROM f_ft_booking");
+        $stmtCount->execute();
+        $b_id = (int)$stmtCount->fetchColumn() + 1;
 
         $query = "INSERT INTO f_ft_booking SET
             b_id = :b_id,

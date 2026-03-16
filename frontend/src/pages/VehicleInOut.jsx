@@ -60,6 +60,16 @@ const { api } = useContext(AuthContext);
         }
     };
 
+    const handleClearStale = async () => {
+        if (!window.confirm("Clear all old stale dispatch records? This fixes vehicles still showing as unavailable from previous sessions.")) return;
+        try {
+            const res = await api.post('/cleanup_stale_dispatch.php');
+            toast(res.data.message || 'Stale records cleared.');
+        } catch {
+            toast('Failed to clear stale records.', 'error');
+        }
+    };
+
     const handleLogoutAll = async () => {
         if (!window.confirm("Are you sure you want to instantly log out all currently active vehicles? This will calculate their final attendance duration.")) {
             return;
@@ -197,19 +207,29 @@ const { api } = useContext(AuthContext);
                         </div>
 
                         {/* Logout ALL */}
-                        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}>
                             <div>
                                 <div style={{ fontSize: 11, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Mass Action</div>
-                                <button onClick={handleLogoutAll} disabled={loggingOut || vehicles.length === 0} style={{
-                                    height: 38, padding: '0 18px', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13,
-                                    background: loggingOut || vehicles.length === 0 ? '#e2e8f0' : '#7f1d1d',
-                                    color: loggingOut || vehicles.length === 0 ? '#94a3b8' : '#fff',
-                                    cursor: loggingOut || vehicles.length === 0 ? 'not-allowed' : 'pointer',
-                                    display: 'flex', alignItems: 'center', gap: 6
-                                }}>
-                                    <span className="material-icons" style={{ fontSize: 15 }}>power_settings_new</span>
-                                    {loggingOut ? 'Processing…' : 'Logout All'}
-                                </button>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <button onClick={handleLogoutAll} disabled={loggingOut || vehicles.length === 0} style={{
+                                        height: 38, padding: '0 18px', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13,
+                                        background: loggingOut || vehicles.length === 0 ? '#e2e8f0' : '#7f1d1d',
+                                        color: loggingOut || vehicles.length === 0 ? '#94a3b8' : '#fff',
+                                        cursor: loggingOut || vehicles.length === 0 ? 'not-allowed' : 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 6
+                                    }}>
+                                        <span className="material-icons" style={{ fontSize: 15 }}>power_settings_new</span>
+                                        {loggingOut ? 'Processing…' : 'Logout All'}
+                                    </button>
+                                    <button onClick={handleClearStale} title="Clear old dispatch records that block vehicles from appearing as available" style={{
+                                        height: 38, padding: '0 14px', border: '1px solid #d1d5db', borderRadius: 6, fontWeight: 700, fontSize: 13,
+                                        background: '#fff', color: '#6b7280', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 6
+                                    }}>
+                                        <span className="material-icons" style={{ fontSize: 15 }}>cleaning_services</span>
+                                        Clear Stale
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -230,6 +250,8 @@ const { api } = useContext(AuthContext);
                                 <th>Vehicle-ID</th>
                                 <th>Driver Name</th>
                                 <th>Vehicle No</th>
+                                <th>Type</th>
+                                <th>Model</th>
                                 <th>Vacant Location</th>
                                 <th style={{ textAlign: 'right' }}>Login Time</th>
                             </tr>
@@ -237,13 +259,13 @@ const { api } = useContext(AuthContext);
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '60px 40px', color: '#6b7280' }}>
+                                    <td colSpan="7" style={{ textAlign: 'center', padding: '60px 40px', color: '#6b7280' }}>
                                         Loading active vehicles network...
                                     </td>
                                 </tr>
                             ) : vehicles.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '60px 40px', color: '#6b7280' }}>
+                                    <td colSpan="7" style={{ textAlign: 'center', padding: '60px 40px', color: '#6b7280' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                                             <span className="material-icons" style={{ fontSize: 32, color: '#cbd5e1' }}>power_off</span>
                                             <div>All vehicles are currently logged out or off-duty.</div>
@@ -263,6 +285,12 @@ const { api } = useContext(AuthContext);
                                         </td>
                                         <td style={{ fontWeight: 700, color: '#023149', fontSize: 13 }}>
                                             {v.v_no || '—'}
+                                        </td>
+                                        <td>
+                                            <span className="badge badge-blue">{v.v_cat || '—'}</span>
+                                        </td>
+                                        <td style={{ fontWeight: 600, color: '#334155' }}>
+                                            {v.v_model || '—'}
                                         </td>
                                         <td>
                                             <span className="badge badge-yellow">

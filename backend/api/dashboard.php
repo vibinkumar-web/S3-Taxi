@@ -52,6 +52,15 @@ try {
     // Inactive Staff
     $stats['inactive_drivers'] = max(0, $stats['total_drivers'] - $stats['active_drivers']);
 
+    // Total Vehicles
+    $stats['total_vehicles'] = safeCount($conn, "SELECT COUNT(*) as cnt FROM f_v_attach");
+
+    // Active Vehicles (currently logged in)
+    $stats['active_vehicles'] = safeCount($conn, "SELECT COUNT(DISTINCT l.id_emp) as cnt FROM f_login_status l JOIN f_v_attach v ON l.id_emp = v.v_id WHERE l.login_status = '1'");
+
+    // Inactive Vehicles
+    $stats['inactive_vehicles'] = max(0, $stats['total_vehicles'] - $stats['active_vehicles']);
+
     // Cancelled Bookings
     $stats['cancelled_booking'] = safeCount($conn, "SELECT COUNT(*) as cnt FROM f_calcel_booking");
 
