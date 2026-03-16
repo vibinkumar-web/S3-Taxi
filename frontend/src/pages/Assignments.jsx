@@ -2,23 +2,29 @@ import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import { formatBookingId } from '../constants';
-
-
-
-
-
 import AuthContext from '../context/AuthContext';
+
 const Assignments = () => {
     const toast = useToast();
     const navigate = useNavigate();
     const { api } = useContext(AuthContext);
+
     const [pendingBookings, setPendingBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [selectedVehicleId, setSelectedVehicleId] = useState('');
     const [availableVehicles, setAvailableVehicles] = useState([]);
     const [loadingVehicles, setLoadingVehicles] = useState(false);
+
+    // Alternative vehicle suggestions when required class has 0 active
+    const [alternativeGroups, setAlternativeGroups] = useState([]);
+    const [savedAlternativeGroups, setSavedAlternativeGroups] = useState([]);
+    const [dispatchingAltCat, setDispatchingAltCat] = useState(null);
+    // 'none' = no active vehicles at all | 'mismatch' = active but wrong class | null = vehicles found
+    const [availabilityState, setAvailabilityState] = useState(null);
 
     useEffect(() => {
         fetchBookings();
@@ -30,7 +36,7 @@ const Assignments = () => {
             const res = await api.get('/assign.php');
             setPendingBookings(Array.isArray(res.data) ? res.data : []);
         } catch (error) {
-            console.error("Error fetching bookings", error);
+            console.error('Error fetching bookings', error);
         } finally {
             setLoading(false);
         }
@@ -40,11 +46,40 @@ const Assignments = () => {
         setSelectedBooking(booking);
         setSelectedVehicleId('');
         setAvailableVehicles([]);
+        setAlternativeGroups([]);
+        setSavedAlternativeGroups([]);
+        setDispatchingAltCat(null);
+        setAvailabilityState(null);
         setIsModalOpen(true);
         setLoadingVehicles(true);
+
         try {
+            // Step 1: fetch active vehicles matching required class
             const res = await api.get(`/available_vehicles.php?v_cat=${encodeURIComponent(booking.v_type || '')}`);
-            setAvailableVehicles(Array.isArray(res.data) ? res.data : []);
+            const vehicles = Array.isArray(res.data) ? res.data : [];
+            setAvailableVehicles(vehicles);
+
+            if (vehicles.length === 0) {
+                // Step 2: fetch entire fleet (not on active trip) with login_status flag
+                const allRes = await api.get('/available_vehicles.php?include_all=1');
+                const all = Array.isArray(allRes.data) ? allRes.data : [];
+
+                const anyActive = all.some(v => v.login_status === '1');
+                setAvailabilityState(anyActive ? 'mismatch' : 'none');
+
+                // Build alternative groups (all categories excl. required class)
+                const grouped = {};
+                all.forEach(v => {
+                    if (v.v_cat !== booking.v_type) {
+                        if (!grouped[v.v_cat]) grouped[v.v_cat] = { online: [], offline: [] };
+                        if (v.login_status === '1') grouped[v.v_cat].online.push(v);
+                        else grouped[v.v_cat].offline.push(v);
+                    }
+                });
+                const groups = Object.entries(grouped).map(([cat, { online, offline }]) => ({ cat, online, offline }));
+                setAlternativeGroups(groups);
+                setSavedAlternativeGroups(groups);
+            }
         } catch (e) {
             setAvailableVehicles([]);
         } finally {
@@ -52,33 +87,47 @@ const Assignments = () => {
         }
     };
 
+    const handleSelectAltCategory = (cat, list) => {
+        setDispatchingAltCat(cat);
+        setAvailableVehicles(list);
+        setSelectedVehicleId('');
+        setAlternativeGroups([]);
+    };
+
+    const handleBackToAlternatives = () => {
+        setDispatchingAltCat(null);
+        setAvailableVehicles([]);
+        setSelectedVehicleId('');
+        setAlternativeGroups(savedAlternativeGroups);
+    };
+
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedBooking(null);
+        setAlternativeGroups([]);
+        setSavedAlternativeGroups([]);
+        setDispatchingAltCat(null);
+        setAvailabilityState(null);
     };
 
     const handleAssign = async () => {
         if (!selectedVehicleId) return;
-
         if (!availableVehicles.some(v => v.v_id === selectedVehicleId)) {
-            toast("Please select a valid vehicle from the list.");
+            toast('Please select a valid vehicle from the list.');
             return;
         }
-
         try {
             await api.post('/assign.php', {
                 b_id: selectedBooking.b_id,
                 v_id: selectedVehicleId
             });
-
-            // Refresh data
             const bookingsRes = await api.get('/assign.php');
             setPendingBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
             closeModal();
             toast('Vehicle Dispatched Successfully! Check the Trip Closing page when the trip is finished.');
             navigate('/');
         } catch (error) {
-            console.error("Error assigning vehicle", error);
+            console.error('Error assigning vehicle', error);
             toast('Failed to assign driver.', 'error');
         }
     };
@@ -95,10 +144,8 @@ const Assignments = () => {
         <div className="page-wrap">
             <div className="page-header">
                 <div>
-                    <div>
-                        <h1>Dispatch Assignments</h1>
-                        <p>Assign specific fleet vehicles and active drivers to confirmed bookings</p>
-                    </div>
+                    <h1>Dispatch Assignments</h1>
+                    <p>Assign specific fleet vehicles and active drivers to confirmed bookings</p>
                 </div>
             </div>
 
@@ -229,22 +276,122 @@ const Assignments = () => {
                                 </div>
                             </div>
 
-                            {/* Vehicle selection */}
-                            <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: 10, letterSpacing: '.04em' }}>
-                                Select Vehicle to Dispatch <span style={{ color: '#c5111a' }}>*</span>
+                            {/* Vehicle selection header */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                                    Select Vehicle to Dispatch <span style={{ color: '#c5111a' }}>*</span>
+                                </div>
+                                {dispatchingAltCat && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <button
+                                            type="button"
+                                            onClick={handleBackToAlternatives}
+                                            style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: '1px solid #cbd5e1', borderRadius: 6, padding: '2px 10px', fontSize: 12, fontWeight: 600, color: '#475569', cursor: 'pointer' }}
+                                        >
+                                            <span className="material-icons" style={{ fontSize: 15 }}>arrow_back</span>
+                                            Back
+                                        </button>
+                                        <span style={{ background: '#fef3c7', border: '1px solid #fbbf24', borderRadius: 6, padding: '2px 10px', fontSize: 11, fontWeight: 700, color: '#92400e' }}>
+                                            Dispatching as: {dispatchingAltCat}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
+
                             <form id="assignForm" onSubmit={e => { e.preventDefault(); handleAssign(); }}>
                                 {loadingVehicles ? (
+                                    /* ── Loading ── */
                                     <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280', fontSize: 14 }}>
                                         <span className="material-icons" style={{ fontSize: 28, display: 'block', marginBottom: 8, color: '#cbd5e1' }}>hourglass_empty</span>
                                         Loading available {selectedBooking.v_type} vehicles...
                                     </div>
-                                ) : availableVehicles.length === 0 ? (
-                                    <div style={{ textAlign: 'center', padding: '32px 0', color: '#c5111a', fontSize: 14 }}>
-                                        <span className="material-icons" style={{ fontSize: 28, display: 'block', marginBottom: 8 }}>do_not_disturb</span>
-                                        No {selectedBooking.v_type} vehicles available right now.
+
+                                ) : alternativeGroups.length > 0 ? (
+                                    /* ── Active vehicles exist but none match required class ── */
+                                    <div style={{ background: '#fffbeb', border: '1px solid #fbbf24', borderRadius: 10, padding: 16 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                                            <span className="material-icons" style={{ color: '#d97706', fontSize: 20 }}>warning_amber</span>
+                                            <div>
+                                                <div style={{ fontWeight: 700, color: '#92400e', fontSize: 13 }}>
+                                                    Active vehicles available but none match required class <strong>{selectedBooking.v_type}</strong>.
+                                                </div>
+                                                <div style={{ fontSize: 12, color: '#78350f', marginTop: 2 }}>
+                                                    Choose another available vehicle class to dispatch:
+                                                </div>
+                                            </div>
+                                        </div>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                            {alternativeGroups.map(({ cat, online, offline }) => {
+                                                const allVehicles = [...online, ...offline];
+                                                const isOnline = online.length > 0;
+                                                return (
+                                                    <button
+                                                        key={cat}
+                                                        type="button"
+                                                        onClick={() => isOnline && handleSelectAltCategory(cat, online)}
+                                                        disabled={!isOnline}
+                                                        style={{
+                                                            display: 'flex', alignItems: 'center', gap: 12,
+                                                            background: isOnline ? '#023149' : '#64748b',
+                                                            color: '#fff', border: 'none', borderRadius: 8,
+                                                            padding: '12px 16px',
+                                                            cursor: isOnline ? 'pointer' : 'not-allowed',
+                                                            textAlign: 'left', opacity: isOnline ? 1 : 0.75
+                                                        }}
+                                                    >
+                                                        <span className="material-icons" style={{ fontSize: 22, color: isOnline ? '#fbbf24' : '#94a3b8' }}>directions_car</span>
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ fontWeight: 800, fontSize: 14 }}>{cat}</div>
+                                                            <div style={{ fontSize: 12, color: '#94d3f9', marginTop: 2 }}>
+                                                                {allVehicles.map(v => `${v.v_brand} ${v.v_model} (${v.v_no})`).slice(0, 2).join(', ')}
+                                                                {allVehicles.length > 2 ? ` +${allVehicles.length - 2} more` : ''}
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+                                                            {isOnline ? (
+                                                                <span style={{ background: '#15803d', borderRadius: 12, padding: '3px 12px', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>
+                                                                    {online.length} active →
+                                                                </span>
+                                                            ) : (
+                                                                <span style={{ background: '#dc2626', borderRadius: 12, padding: '3px 12px', fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap' }}>
+                                                                    offline
+                                                                </span>
+                                                            )}
+                                                            {isOnline && offline.length > 0 && (
+                                                                <span style={{ fontSize: 10, color: '#fca5a5' }}>{offline.length} offline</span>
+                                                            )}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
+
+                                ) : availabilityState === 'none' ? (
+                                    /* ── No active vehicles at all ── */
+                                    <div style={{ textAlign: 'center', padding: '32px 0', color: '#c5111a', fontSize: 14 }}>
+                                        <span className="material-icons" style={{ fontSize: 32, display: 'block', marginBottom: 8 }}>do_not_disturb</span>
+                                        <div style={{ fontWeight: 700, marginBottom: 4 }}>No active vehicles available.</div>
+                                        <div style={{ fontSize: 12, color: '#6b7280' }}>No drivers are currently logged in. Ask them to log in from the Vehicle In/Out page.</div>
+                                    </div>
+
+                                ) : availableVehicles.length === 0 && availabilityState === 'mismatch' ? (
+                                    /* ── Mismatch but alternatives panel was empty (already dispatched) ── */
+                                    <div style={{ textAlign: 'center', padding: '32px 0', color: '#c5111a', fontSize: 14 }}>
+                                        <span className="material-icons" style={{ fontSize: 32, display: 'block', marginBottom: 8 }}>do_not_disturb</span>
+                                        <div style={{ fontWeight: 700, marginBottom: 4 }}>Active vehicles available but none match required class.</div>
+                                        <div style={{ fontSize: 12, color: '#6b7280' }}>All active {selectedBooking.v_type} vehicles are currently on trip.</div>
+                                    </div>
+
+                                ) : availableVehicles.length === 0 ? (
+                                    /* ── Fallback empty state ── */
+                                    <div style={{ textAlign: 'center', padding: '32px 0', color: '#c5111a', fontSize: 14 }}>
+                                        <span className="material-icons" style={{ fontSize: 32, display: 'block', marginBottom: 8 }}>do_not_disturb</span>
+                                        No active vehicles available.
+                                    </div>
+
                                 ) : (
+                                    /* ── Vehicle list ── */
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 280, overflowY: 'auto', paddingRight: 4 }}>
                                         {availableVehicles.map(v => {
                                             const vid = v.v_id;
