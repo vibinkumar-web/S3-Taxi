@@ -114,8 +114,8 @@ const VehicleReport = () => {
                                 </td>
                             </tr>
                         ) : (
-                            reportData.map((row) => (
-                                <tr key={row.b_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            reportData.map((row, i) => (
+                                <tr key={`${row.b_id}-${i}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                     <td style={{ padding: '12px 24px', fontWeight: 800, color: '#023149', fontFamily: 'monospace', fontSize: 13 }}>#{row.b_id}</td>
                                     <td style={{ padding: '12px 24px', color: '#475569', fontSize: 13, fontWeight: 600 }}>{row.bookin_time}</td>
                                     <td style={{ padding: '12px 24px' }}>

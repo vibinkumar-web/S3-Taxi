@@ -217,7 +217,44 @@ if ($method === 'GET') {
              $bkStmt = $db->prepare($bkQuery);
              $bkStmt->bindParam(":b_id", $b_id);
              $bkStmt->execute();
-             
+
+             // Ensure f_trip_sheet_entry table exists (used by Company Wise and Day Wise reports)
+             $db->exec("CREATE TABLE IF NOT EXISTS f_trip_sheet_entry (
+                 id INT AUTO_INCREMENT PRIMARY KEY,
+                 trip_id VARCHAR(55) NOT NULL,
+                 date DATE NOT NULL,
+                 company_name VARCHAR(100) DEFAULT '',
+                 guest_name VARCHAR(100) DEFAULT '',
+                 pickup_city VARCHAR(100) DEFAULT '',
+                 drop_city VARCHAR(100) DEFAULT '',
+                 v_type VARCHAR(55) DEFAULT '',
+                 vechile_no VARCHAR(55) DEFAULT '',
+                 total_km DECIMAL(10,2) DEFAULT 0,
+                 total_amt DECIMAL(10,2) DEFAULT 0,
+                 INDEX idx_date (date),
+                 INDEX idx_company (company_name(20))
+             )");
+
+             // Auto-populate f_trip_sheet_entry for Company Wise and Day Wise reports
+             $running_km_val = max(0, floatval($closing_km) - floatval($opening_km));
+             $sheetStmt = $db->prepare(
+                 "INSERT INTO f_trip_sheet_entry
+                      (trip_id, date, company_name, guest_name, pickup_city, drop_city, v_type, vechile_no, total_km, total_amt)
+                  VALUES
+                      (:trip_id, :date, :company_name, :guest_name, :pickup_city, :drop_city, :v_type, :vechile_no, :total_km, :total_amt)"
+             );
+             $sheetStmt->bindParam(':trip_id',      $b_id);
+             $sheetStmt->bindParam(':date',         $p_date);
+             $sheetStmt->bindParam(':company_name', $to_whom);
+             $sheetStmt->bindParam(':guest_name',   $customer);
+             $sheetStmt->bindParam(':pickup_city',  $p_city);
+             $sheetStmt->bindParam(':drop_city',    $d_place);
+             $sheetStmt->bindParam(':v_type',       $v_type);
+             $sheetStmt->bindParam(':vechile_no',   $v_id);
+             $sheetStmt->bindParam(':total_km',     $running_km_val);
+             $sheetStmt->bindParam(':total_amt',    $net_total);
+             $sheetStmt->execute();
+
              http_response_code(200);
              echo json_encode(array("message" => "Trip closed successfully."));
         } else {

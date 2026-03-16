@@ -18,10 +18,15 @@ try {
 
     if ($from_date && $to_date) {
         
-        // Correct table is f_refused, joining with f_ft_booking
-        $query = "SELECT r.*, b.pickup, b.drop_place, b.cus_name 
+        // f_refused stores pickup, p_city, d_place at the time of refusal.
+        // The old JOIN on f_ft_booking used non-existent columns (b.cus_name, b.drop_place).
+        // Read directly from f_refused and alias 'reason' -> 'reason_for' to match frontend.
+        $query = "SELECT r.date_refused, r.b_id, r.v_id,
+                         r.reason   AS reason_for,
+                         r.pickup,
+                         r.p_city,
+                         r.d_place  AS drop_place
                   FROM f_refused r
-                  LEFT JOIN f_ft_booking b ON r.b_id = b.b_id
                   WHERE r.date_refused BETWEEN :from_date AND :to_date";
                   
         if ($v_id && $v_id !== 'All') {

@@ -21,8 +21,12 @@ $db = $database->getConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    // Fetch currently logged-in staff
-    $query = "SELECT * FROM f_login_status WHERE emp_login = '1' ORDER BY login_time DESC";
+    // Fetch currently logged-in staff with name fallback from ft_staff
+    $query = "SELECT ls.*, COALESCE(NULLIF(ls.emp_name,''), s.name) AS emp_name
+              FROM f_login_status ls
+              LEFT JOIN ft_staff s ON ls.id_emp = s.emp_id
+              WHERE ls.emp_login = '1'
+              ORDER BY ls.login_time DESC";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);

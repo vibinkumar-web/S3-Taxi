@@ -24,8 +24,10 @@ if ($method === 'POST') {
             
             // 2. Insert into f_calcel_booking (Archiving)
             // Note: f_calcel_booking (sic) table structure assumed from legacy code
+            $cancel_date = date('Y-m-d'); // Capture current date for b_date
             $insertQuery = "INSERT INTO f_calcel_booking SET
                 b_id = :b_id,
+                b_date = :b_date,
                 pickup = :pickup,
                 d_place = :d_place,
                 to_whom = :to_whom,
@@ -47,9 +49,10 @@ if ($method === 'POST') {
                 d_mobile = :d_mobile,
                 user_id = :user_id,
                 reason = :reason";
-            
+
             $insStmt = $db->prepare($insertQuery);
             $insStmt->bindParam(":b_id", $row['b_id']);
+            $insStmt->bindParam(":b_date", $cancel_date);
             $insStmt->bindParam(":pickup", $row['pickup']);
             $insStmt->bindParam(":d_place", $row['d_place']);
             $insStmt->bindParam(":to_whom", $row['to_whom']);

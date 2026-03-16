@@ -46,14 +46,40 @@ if ($stmt_booking->execute()) {
     $stmt_ontrip->bindParam(":b_id", $data->b_id);
     $stmt_ontrip->execute();
 
-    // 4. Insert into f_refused_ontrip
+    // 4. Fetch booking details for p_city / d_place before the record is fully unlinked
+    $bkRef = $db->prepare("SELECT p_city, d_place, pickup FROM f_ft_booking WHERE b_id = :b_id LIMIT 1");
+    $bkRef->bindParam(":b_id", $data->b_id);
+    $bkRef->execute();
+    $bkRow = $bkRef->fetch(PDO::FETCH_ASSOC);
+    $ref_pickup  = $bkRow ? $bkRow['pickup']  : null;
+    $ref_p_city  = $bkRow ? $bkRow['p_city']  : '';
+    $ref_d_place = $bkRow ? $bkRow['d_place']  : '';
+    $ref_date    = date('Y-m-d');
+    $ref_user_id = isset($data->user_id) ? intval($data->user_id) : 0;
+
+    // 5. Insert into f_refused — this is the table that refusal_report.php reads
+    $query_refused = "INSERT INTO f_refused
+        (b_id, v_id, reason, pickup, p_city, d_place, r_date, date_refused, miss_amount, user_id)
+        VALUES (:b_id, :v_id, :reason, :pickup, :p_city, :d_place, NOW(), :date_refused, 0, :user_id)";
+    $stmt_refused = $db->prepare($query_refused);
+    $stmt_refused->bindParam(":b_id",         $data->b_id);
+    $stmt_refused->bindParam(":v_id",         $data->v_id);
+    $stmt_refused->bindParam(":reason",       $data->reason);
+    $stmt_refused->bindParam(":pickup",       $ref_pickup);
+    $stmt_refused->bindParam(":p_city",       $ref_p_city);
+    $stmt_refused->bindParam(":d_place",      $ref_d_place);
+    $stmt_refused->bindParam(":date_refused", $ref_date);
+    $stmt_refused->bindParam(":user_id",      $ref_user_id);
+    $stmt_refused->execute();
+
+    // 6. Also insert into f_refused_ontrip (legacy audit trail)
     $query_refuse = "INSERT INTO f_refused_ontrip (b_id, v_id, reason_for, date_refused, user_id) VALUES (:b_id, :v_id, :reason, NOW(), :user_id)";
     $stmt_refuse = $db->prepare($query_refuse);
-    $stmt_refuse->bindParam(":b_id", $data->b_id);
-    $stmt_refuse->bindParam(":v_id", $data->v_id);
-    $stmt_refuse->bindParam(":reason", $data->reason);
+    $stmt_refuse->bindParam(":b_id",    $data->b_id);
+    $stmt_refuse->bindParam(":v_id",    $data->v_id);
+    $stmt_refuse->bindParam(":reason",  $data->reason);
     $stmt_refuse->bindParam(":user_id", $data->user_id);
-    
+
     if ($stmt_refuse->execute()) {
         echo json_encode(array("message" => "Trip Refusal Processed Successfully."));
     } else {

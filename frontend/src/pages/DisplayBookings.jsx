@@ -213,7 +213,7 @@ const DisplayBookings = () => {
                                     <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Try adjusting the date range or clearing filters</div>
                                 </td></tr>
                             ) : bookings.map((b, i) => (
-                                <tr key={b.b_id}
+                                <tr key={`${b.b_id}-${i}`}
                                     style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 0 ? '#fff' : '#fafafa' }}
                                     onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
                                     onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#fff' : '#fafafa'}

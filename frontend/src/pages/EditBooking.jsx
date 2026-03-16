@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { useToast } from '../context/ToastContext';
-import { API, DATE_RANGE_ALL, formatBookingId } from '../constants';
+import { formatBookingId } from '../constants';
 
 
 
@@ -19,19 +19,21 @@ const { api } = useContext(AuthContext);
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await api.get(`${API.REPORTS}?type=booking&from_date=${DATE_RANGE_ALL.FROM}&to_date=${DATE_RANGE_ALL.TO}`);
-            const found = response.data.find(b => b.b_id == bookingId);
+            const response = await api.get(`/bookings.php?all=1&search=${bookingId}`);
+            const list = response.data?.bookings || [];
+            const found = list.find(b => String(b.b_id) === String(bookingId));
 
             if (found) {
                 setBookingData(found);
                 setFormData(found);
             } else {
-                toast("Booking not found.", 'error');
+                toast('Booking not found.', 'error');
                 setBookingData(null);
+                setFormData({});
             }
         } catch (error) {
-            console.error("Error searching booking", error);
-            toast("Error searching booking.", 'error');
+            console.error('Error searching booking', error);
+            toast('Error searching booking.', 'error');
         } finally {
             setLoading(false);
         }
@@ -114,11 +116,11 @@ const handleChange = (e) => {
                                         <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
                                             <div className="form-field" style={{ margin: 0 }}>
                                                 <label>Customer Name <span style={{ color: '#c5111a' }}>*</span></label>
-                                                <input type="text" name="cus_name" value={formData.cus_name || ''} onChange={handleChange} required />
+                                                <input type="text" name="b_name" value={formData.b_name || ''} onChange={handleChange} required />
                                             </div>
                                             <div className="form-field" style={{ margin: 0 }}>
                                                 <label>Mobile Number <span style={{ color: '#c5111a' }}>*</span></label>
-                                                <input type="text" name="cus_mobile" value={formData.cus_mobile || ''} onChange={handleChange} required />
+                                                <input type="text" name="m_no" value={formData.m_no || ''} onChange={handleChange} required />
                                             </div>
                                         </div>
                                     </div>
@@ -129,22 +131,22 @@ const handleChange = (e) => {
                                         <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
                                             <div className="form-field" style={{ margin: 0 }}>
                                                 <label>Pickup Time <span style={{ color: '#c5111a' }}>*</span></label>
-                                                <input type="datetime-local" name="pickup_time" value={formData.pickup_time || ''} onChange={handleChange} required />
+                                                <input type="datetime-local" name="pickup" value={formData.pickup ? formData.pickup.replace(' ', 'T').slice(0,16) : ''} onChange={handleChange} required />
                                             </div>
                                             <div className="form-field" style={{ margin: 0 }}>
                                                 <label>Booking Classification</label>
-                                                <select name="b_type" value={formData.b_type || ''} onChange={handleChange}>
+                                                <select name="b_type" value={formData.b_type || '0'} onChange={handleChange}>
                                                     <option value="0">Current Request</option>
                                                     <option value="1">Advance Booking</option>
                                                 </select>
                                             </div>
                                             <div className="form-field" style={{ margin: 0 }}>
                                                 <label>Pickup Point <span style={{ color: '#c5111a' }}>*</span></label>
-                                                <input type="text" name="pickup" value={formData.pickup || ''} onChange={handleChange} required />
+                                                <input type="text" name="p_city" value={formData.p_city || ''} onChange={handleChange} required />
                                             </div>
                                             <div className="form-field" style={{ margin: 0 }}>
                                                 <label>Destination Drop <span style={{ color: '#c5111a' }}>*</span></label>
-                                                <input type="text" name="drop_place" value={formData.drop_place || ''} onChange={handleChange} required />
+                                                <input type="text" name="d_place" value={formData.d_place || ''} onChange={handleChange} required />
                                             </div>
                                         </div>
                                     </div>
@@ -155,7 +157,7 @@ const handleChange = (e) => {
                                         <div className="form-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                                             <div className="form-field" style={{ margin: 0 }}>
                                                 <label>Requested Vehicle / Class</label>
-                                                <input type="text" name="v_types" value={formData.v_types || ''} onChange={handleChange} placeholder="e.g. Sedan, Innova" />
+                                                <input type="text" name="v_type" value={formData.v_type || ''} onChange={handleChange} placeholder="e.g. Sedan, Innova" />
                                             </div>
                                             <div className="form-field" style={{ margin: 0 }}>
                                                 <label>A/C Preference</label>

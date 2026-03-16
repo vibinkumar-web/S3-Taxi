@@ -12,11 +12,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     // Return next booking ID and total count
     if (isset($_GET['action']) && $_GET['action'] === 'next_id') {
-        $stmtMax = $db->prepare("SELECT COUNT(*) as total FROM f_ft_booking");
+        $stmtMax = $db->prepare("SELECT COUNT(*) as total, COALESCE(MAX(b_id), 0) as max_id FROM f_ft_booking");
         $stmtMax->execute();
         $row = $stmtMax->fetch(PDO::FETCH_ASSOC);
         $total = (int)$row['total'];
-        $next_id = $total + 1;
+        $next_id = (int)$row['max_id'] + 1;
         echo json_encode(['next_id' => $next_id, 'last_id' => $total, 'total' => $total]);
         exit;
     }
@@ -76,8 +76,8 @@ if ($method === 'GET') {
         !empty($data->pickup) &&
         !empty($data->m_no)
     ) {
-        // Calculate b_id based on current count so IDs stay in sync with total records
-        $stmtCount = $db->prepare("SELECT COUNT(*) as total FROM f_ft_booking");
+        // Calculate b_id using MAX(b_id) + 1 to avoid duplicates when bookings are deleted
+        $stmtCount = $db->prepare("SELECT COALESCE(MAX(b_id), 0) FROM f_ft_booking");
         $stmtCount->execute();
         $b_id = (int)$stmtCount->fetchColumn() + 1;
 

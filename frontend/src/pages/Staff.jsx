@@ -96,12 +96,12 @@ const Staff = () => {
             <div className="page-header">
                 <div>
                     <div>
-                        <h1>Personnel Directory</h1>
-                        <p>Manage employee records, security scopes, and organizational statuses</p>
+                        <h1>Staff</h1>
+                        <p>Manage staff details, roles and status</p>
                     </div>
                     <button className="btn-primary" onClick={handleAdd} style={{ background: '#023149' }} onMouseEnter={e => e.currentTarget.style.background = '#012030'} onMouseLeave={e => e.currentTarget.style.background = '#023149'}>
                         <span className="material-icons" style={{ fontSize: 18 }}>person_add</span>
-                        Provision New Agent
+                        Add New Staff
                     </button>
                 </div>
             </div>
@@ -111,12 +111,12 @@ const Staff = () => {
                     <table>
                         <thead>
                             <tr>
-                                <th>Personnel ID</th>
-                                <th>Name / Legal Identity</th>
-                                <th>Security Designation</th>
-                                <th>Primary Contact</th>
-                                <th>Operational Status</th>
-                                <th style={{ textAlign: 'right' }}>Management</th>
+                                <th>Staff ID</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Mobile</th>
+                                <th>Status</th>
+                                <th style={{ textAlign: 'right' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -125,7 +125,7 @@ const Staff = () => {
                                     <td colSpan="6" style={{ textAlign: 'center', padding: '60px 40px', color: '#6b7280' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                                             <span className="material-icons" style={{ fontSize: 32, color: '#cbd5e1' }}>sync</span>
-                                            <div>Loading active organizational directory...</div>
+                                            <div>Loading staff list...</div>
                                         </div>
                                     </td>
                                 </tr>
@@ -134,7 +134,7 @@ const Staff = () => {
                                     <td colSpan="6" style={{ textAlign: 'center', padding: '60px 40px', color: '#6b7280' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                                             <span className="material-icons" style={{ fontSize: 32, color: '#cbd5e1' }}>groups</span>
-                                            <div>No authenticated personnel entries found within scope.</div>
+                                            <div>No staff found.</div>
                                         </div>
                                     </td>
                                 </tr>
@@ -151,7 +151,7 @@ const Staff = () => {
                                         <td style={{ fontWeight: 600, color: '#475569' }}>{staff.mobile}</td>
                                         <td>
                                             <span className={`badge ${staff.emp_status === '0' ? 'badge-green' : 'badge-red'}`}>
-                                                {staff.emp_status === '0' ? 'Active Scope' : 'Access Revoked'}
+                                                {staff.emp_status === '0' ? 'Active' : 'Resigned'}
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
@@ -163,7 +163,7 @@ const Staff = () => {
                                                 onMouseLeave={e => e.currentTarget.style.background = '#f0f9ff'}
                                             >
                                                 <span className="material-icons" style={{ fontSize: 16 }}>manage_accounts</span>
-                                                Modify Config
+                                                Edit
                                             </button>
                                         </td>
                                     </tr>
@@ -181,7 +181,7 @@ const Staff = () => {
                         <div className="modal-header">
                             <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span className="material-icons" style={{ color: '#023149' }}>{isEdit ? 'admin_panel_settings' : 'badge'}</span>
-                                {isEdit ? `Modifying Entity Protocol: ${formData.emp_id}` : 'Provisioning New Internal Entity'}
+                                {isEdit ? `Edit Staff: ${formData.emp_id}` : 'Add New Staff'}
                             </h2>
                             <button onClick={() => setShowModal(false)}>
                                 <span className="material-icons">close</span>
@@ -196,19 +196,19 @@ const Staff = () => {
                                     <div>
                                         <h3 style={{ margin: '0 0 20px', fontSize: 13, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid #e2e8f0', paddingBottom: 12 }}>
                                             <span className="material-icons" style={{ fontSize: 18, color: '#023149' }}>assignment_ind</span>
-                                            KYC &amp; Core Identity Schema
+                                            Personal Info
                                         </h3>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                                             <div className="form-field" style={{ margin: 0 }}>
-                                                <label htmlFor="name">Legal Name Registry <span style={{ color: '#c5111a' }}>*</span></label>
+                                                <label htmlFor="name">Full Name <span style={{ color: '#c5111a' }}>*</span></label>
                                                 <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required />
                                             </div>
                                             <div className="form-field" style={{ margin: 0 }}>
-                                                <label htmlFor="mobile">Primary Telephonic Node <span style={{ color: '#c5111a' }}>*</span></label>
+                                                <label htmlFor="mobile">Mobile Number <span style={{ color: '#c5111a' }}>*</span></label>
                                                 <input type="text" id="mobile" name="mobile" value={formData.mobile} onChange={handleChange} required />
                                             </div>
                                             <div className="form-field" style={{ margin: 0 }}>
-                                                <label htmlFor="email">Authorized Electronic Mail</label>
+                                                <label htmlFor="email">Email Address</label>
                                                 <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} />
                                             </div>
                                             <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -217,12 +217,12 @@ const Staff = () => {
                                                     <input type="date" name="dob" value={formData.dob} onChange={handleChange} />
                                                 </div>
                                                 <div className="form-field" style={{ margin: 0 }}>
-                                                    <label>Commissioning Date</label>
+                                                    <label>Joining Date</label>
                                                     <input type="date" name="j_date" value={formData.j_date} onChange={handleChange} />
                                                 </div>
                                             </div>
                                             <div className="form-field" style={{ margin: 0 }}>
-                                                <label>Verified Postal Matrix</label>
+                                                <label>Address</label>
                                                 <textarea name="address" value={formData.address} onChange={handleChange} rows="3" style={{ resize: 'vertical', minHeight: 88 }}></textarea>
                                             </div>
                                         </div>
@@ -232,21 +232,21 @@ const Staff = () => {
                                     <div>
                                         <h3 style={{ margin: '0 0 20px', fontSize: 13, fontWeight: 800, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid #e2e8f0', paddingBottom: 12 }}>
                                             <span className="material-icons" style={{ fontSize: 18, color: '#c5111a' }}>security</span>
-                                            Security Scope &amp; Logic
+                                            Role & Salary Details
                                         </h3>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                                             <div style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: 8, border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 16 }}>
                                                 <div className="form-field" style={{ margin: 0 }}>
-                                                    <label>ACL Designation <span style={{ color: '#c5111a' }}>*</span></label>
+                                                    <label>Role <span style={{ color: '#c5111a' }}>*</span></label>
                                                     <select name="u_type" value={formData.u_type} onChange={handleChange} style={{ fontWeight: 600 }}>
-                                                        <option value="Admin">Tier 1: Architect / Admin</option>
-                                                        <option value="Manager">Tier 2: Regional Manager</option>
-                                                        <option value="Call Center Executive">Tier 3: Executive Agent</option>
+                                                        <option value="Admin">Admin</option>
+                                                        <option value="Manager">Manager</option>
+                                                        <option value="Call Center Executive">Call Center Executive</option>
                                                     </select>
                                                 </div>
                                                 <div className="form-field" style={{ margin: 0 }}>
-                                                    <label htmlFor="pwd">Cryptographic Secret (PWD) <span style={{ color: '#c5111a' }}>*</span></label>
+                                                    <label htmlFor="pwd">Password <span style={{ color: '#c5111a' }}>*</span></label>
                                                     <input type="text" id="pwd" name="pwd" value={formData.pwd} onChange={handleChange} required style={{ fontFamily: 'monospace', letterSpacing: '.1em' }} />
                                                 </div>
                                             </div>
@@ -254,43 +254,43 @@ const Staff = () => {
                                             <div style={{ background: '#fdf6e8', padding: '16px 20px', borderRadius: 8, border: '1px solid #e8d4aa', display: 'flex', flexDirection: 'column', gap: 16 }}>
                                                 <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                                     <div className="form-field" style={{ margin: 0 }}>
-                                                        <label>Base Apportionment</label>
+                                                        <label>Monthly Salary</label>
                                                         <input type="number" name="salary" value={formData.salary} onChange={handleChange} placeholder="0.00" />
                                                     </div>
                                                     <div className="form-field" style={{ margin: 0 }}>
-                                                        <label>Required Timecycle</label>
+                                                        <label>Working Hours / Day</label>
                                                         <input type="number" name="hrsp_day" value={formData.hrsp_day} onChange={handleChange} placeholder="8 Hrs" />
                                                     </div>
                                                 </div>
                                                 <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                                     <div className="form-field" style={{ margin: 0 }}>
-                                                        <label>Flux Overtime (Alpha)</label>
+                                                        <label>Day Overtime Rate</label>
                                                         <input type="number" name="hrs_day" value={formData.hrs_day} onChange={handleChange} placeholder="0.00" />
                                                     </div>
                                                     <div className="form-field" style={{ margin: 0 }}>
-                                                        <label>Flux Overtime (Omega)</label>
+                                                        <label>Night Overtime Rate</label>
                                                         <input type="number" name="hrs_night" value={formData.hrs_night} onChange={handleChange} placeholder="0.00" />
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="form-field" style={{ margin: 0, padding: '12px 16px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8 }}>
-                                                <label style={{ marginBottom: 12 }}>Organizational Status Overrides</label>
+                                                <label style={{ marginBottom: 12 }}>Employment Status</label>
                                                 <div style={{ display: 'flex', gap: 32 }}>
                                                     <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, color: '#15803d', fontWeight: 700 }}>
                                                         <input type="radio" name="emp_status" value="0" checked={formData.emp_status === '0'} onChange={handleChange} />
-                                                        Active &amp; Bound
+                                                        Active
                                                     </label>
                                                     <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, color: '#b91c1c', fontWeight: 700 }}>
                                                         <input type="radio" name="emp_status" value="1" checked={formData.emp_status === '1'} onChange={handleChange} />
-                                                        Revoked (Resigned)
+                                                        Resigned
                                                     </label>
                                                 </div>
                                             </div>
 
                                             {formData.emp_status === '1' && (
                                                 <div className="form-field" style={{ margin: 0, animation: 'fadeIn 0.2s ease-out' }}>
-                                                    <label>Revocation Terminus Date</label>
+                                                    <label>Resignation Date</label>
                                                     <input type="date" name="r_date" value={formData.r_date} onChange={handleChange} style={{ borderColor: '#fca5a5', background: '#fef2f2' }} />
                                                 </div>
                                             )}
@@ -300,10 +300,10 @@ const Staff = () => {
                                 </div>
                             </div>
                             <div className="modal-footer" style={{ padding: '24px 32px' }}>
-                                <button type="button" className="btn-ghost" onClick={() => setShowModal(false)}>Terminate Process</button>
+                                <button type="button" className="btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
                                 <button type="submit" className="btn-primary" style={{ background: '#023149', height: 44, padding: '0 32px' }} onMouseEnter={e => e.currentTarget.style.background = '#012030'} onMouseLeave={e => e.currentTarget.style.background = '#023149'}>
                                     <span className="material-icons" style={{ fontSize: 18 }}>gavel</span>
-                                    {isEdit ? 'Enforce Registry Changes' : 'Initialize Agent Record'}
+                                    {isEdit ? 'Save Changes' : 'Add Staff'}
                                 </button>
                             </div>
                         </form>

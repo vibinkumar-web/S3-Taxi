@@ -21,35 +21,37 @@ if (!isset($data->b_id)) {
     exit;
 }
 
-// Update f_ft_booking
+// Update f_ft_booking with correct DB column names
 $query = "UPDATE f_ft_booking SET
-            b_name = :cus_name,
-            m_no = :cus_mobile,
-            pickup = :pickup,
-            d_place = :drop_place,
-            v_types = :v_types,
-            b_type = :b_type,
-            ac_type = :ac_type,
-            remarks = :remarks
+            b_name   = :b_name,
+            m_no     = :m_no,
+            pickup   = :pickup,
+            p_city   = :p_city,
+            d_place  = :d_place,
+            v_type   = :v_type,
+            b_type   = :b_type,
+            ac_type  = :ac_type,
+            remarks  = :remarks
           WHERE b_id = :b_id";
 
 $stmt = $db->prepare($query);
 
-$stmt->bindParam(":cus_name", $data->cus_name);
-$stmt->bindParam(":cus_mobile", $data->cus_mobile);
-$stmt->bindParam(":pickup", $data->pickup);
-$stmt->bindParam(":drop_place", $data->drop_place);
-$stmt->bindParam(":v_types", $data->v_types);
-$stmt->bindParam(":b_type", $data->b_type);
+$stmt->bindParam(":b_name",  $data->b_name);
+$stmt->bindParam(":m_no",    $data->m_no);
+$stmt->bindParam(":pickup",  $data->pickup);
+$stmt->bindParam(":p_city",  $data->p_city);
+$stmt->bindParam(":d_place", $data->d_place);
+$stmt->bindParam(":v_type",  $data->v_type);
+$stmt->bindParam(":b_type",  $data->b_type);
 $stmt->bindParam(":ac_type", $data->ac_type);
 $stmt->bindParam(":remarks", $data->remarks);
-$stmt->bindParam(":b_id", $data->b_id);
+$stmt->bindParam(":b_id",    $data->b_id);
 
 if ($stmt->execute()) {
     echo json_encode(array("message" => "Booking Updated Successfully."));
 } else {
     http_response_code(503);
-    echo json_encode(array("message" => "Unable to update booking."));
+    echo json_encode(array("message" => "Unable to update booking.", "error" => $stmt->errorInfo()));
 }
 ?>
 

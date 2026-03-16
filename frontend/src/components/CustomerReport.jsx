@@ -96,8 +96,8 @@ const CustomerReport = () => {
                                 </td>
                             </tr>
                         ) : (
-                            reportData.map((row) => (
-                                <tr key={row.b_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            reportData.map((row, i) => (
+                                <tr key={`${row.b_id}-${i}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                     <td style={{ padding: '16px 24px', fontWeight: 800, color: '#023149', fontFamily: 'monospace', fontSize: 13 }}>#{row.b_id}</td>
                                     <td style={{ padding: '16px 24px', fontWeight: 700, color: '#334155' }}>{row.b_name}</td>
                                     <td style={{ padding: '16px 24px', fontWeight: 600, color: '#475569', fontSize: 13 }}>{row.m_no}</td>
