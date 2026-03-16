@@ -212,7 +212,7 @@ const Bookings = () => {
             const bookingRes = await api.post('/bookings.php', { ...formData, user_id: userId });
             const savedId = bookingRes.data?.b_id;
             resetForm();
-            setNextBookingId(savedId ? savedId + 1 : null);
+            setNextBookingId(savedId ? parseInt(savedId, 10) + 1 : null);
             setTotalBookings(prev => prev !== null ? prev + 1 : null);
             toast('Booking Registered Successfully! Redirecting to Assign page to dispatch driver.');
             navigate('/assignments');

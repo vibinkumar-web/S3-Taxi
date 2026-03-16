@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
-import { formatBookingId } from '../constants';
+import { formatBookingId, BASE_FARE_FALLBACK, COMMISSION_RATE } from '../constants';
 
 
 
@@ -42,13 +42,13 @@ const TripClosing = () => {
         net_total: 0
     });
 
-    const [baseFareConfig, setBaseFareConfig] = useState(190);
+    const [baseFareConfig, setBaseFareConfig] = useState(BASE_FARE_FALLBACK);
 
     useEffect(() => {
         const fetchBaseFareConfig = async () => {
             try {
                 const res = await api.get('/settings.php?config=base_fare');
-                setBaseFareConfig(res.data.base_fare ?? 190);
+                setBaseFareConfig(res.data.base_fare ?? BASE_FARE_FALLBACK);
             } catch (e) {
                 console.error('Failed to load base fare config', e);
             }
@@ -196,8 +196,8 @@ const TripClosing = () => {
                 opening_km: tripDetails.open_km || 0
             });
 
-            // 2. Automatically record standard 10% Office Commission to the new Finance Ledger
-            const commissionCut = (calculated.net_total * 0.10).toFixed(2);
+            // 2. Automatically record standard office commission to the Finance Ledger
+            const commissionCut = (calculated.net_total * COMMISSION_RATE).toFixed(2);
             if (commissionCut > 0 && tripDetails.v_id) {
                 await api.post('/finance.php', {
                     action: 'process_commission',

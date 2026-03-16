@@ -63,7 +63,7 @@ test('renders active trip cards from API', async () => {
     });
 
     expect(screen.getByText('Bob White')).toBeInTheDocument();
-    expect(screen.getByText('#401')).toBeInTheDocument();
+    expect(screen.getByText('BK-0401')).toBeInTheDocument();
     expect(apiMock.get).toHaveBeenCalledWith('/closing.php');
 });
 

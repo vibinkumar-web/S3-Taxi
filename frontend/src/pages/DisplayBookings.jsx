@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { formatBookingId } from '../constants';
+import { formatBookingId, PAGE_LIMIT } from '../constants';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
@@ -15,8 +15,6 @@ const DATE_PRESETS = [
     { label: 'This Month', from: startOfMonth,     to: today },
     { label: 'All',        from: () => '',         to: () => '' },
 ];
-
-const LIMIT = 50;
 
 const DisplayBookings = () => {
     const { api } = useContext(AuthContext);
@@ -52,7 +50,7 @@ const DisplayBookings = () => {
             if (params.status)    query.set('status',    params.status);
             if (params.search)    query.set('search',    params.search);
             query.set('page',  params.page ?? 1);
-            query.set('limit', LIMIT);
+            query.set('limit', PAGE_LIMIT);
             // 'all' flag tells backend: no default date filter
             if (!params.from_date && !params.to_date) query.set('all', '1');
 

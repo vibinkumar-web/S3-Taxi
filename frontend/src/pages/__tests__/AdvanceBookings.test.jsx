@@ -4,9 +4,10 @@ import AdvanceBookings from '../AdvanceBookings';
 import AuthContext from '../../context/AuthContext';
 import { expect, test, vi } from 'vitest';
 
+// Use correct field names that match AdvanceBookings.jsx: b_name, m_no (not cus_name, cus_mobile)
 const mockBookings = [
-    { b_id: '201', cus_name: 'John Doe', cus_mobile: '9876543210', pickup: '2024-01-15 10:00:00', p_city: 'City A', d_place: 'Airport', v_types: 'Sedan', q: 'V001', assign: '0' },
-    { b_id: '202', cus_name: 'Jane Smith', cus_mobile: '8765432109', pickup: '2024-01-16 14:00:00', p_city: 'Station', d_place: 'Hotel', v_types: 'SUV', q: 'V002', assign: '0' }
+    { b_id: '201', b_name: 'John Doe', m_no: '9876543210', pickup: '2024-01-15 10:00:00', p_city: 'City A', d_place: 'Airport', v_types: 'Sedan', q: 'V001', assign: '0' },
+    { b_id: '202', b_name: 'Jane Smith', m_no: '8765432109', pickup: '2024-01-16 14:00:00', p_city: 'Station', d_place: 'Hotel', v_types: 'SUV', q: 'V002', assign: '0' }
 ];
 
 const renderAdvanceBookings = (apiMock) => {

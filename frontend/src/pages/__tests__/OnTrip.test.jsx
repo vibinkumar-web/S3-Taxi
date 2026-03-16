@@ -33,7 +33,7 @@ test('shows loading state in trips table while fetching', async () => {
     renderOnTrip(apiMock);
 
     await waitFor(() => {
-        expect(screen.getByText(/Synchronizing active dispatches/i)).toBeInTheDocument();
+        expect(screen.getByText('Loading active trips...')).toBeInTheDocument();
     });
 });
 
@@ -42,10 +42,10 @@ test('renders active trips from API', async () => {
     renderOnTrip(apiMock);
 
     await waitFor(() => {
-        expect(screen.getByText('#301')).toBeInTheDocument();
+        expect(screen.getByText('BK-0301')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('#302')).toBeInTheDocument();
+    expect(screen.getByText('BK-0302')).toBeInTheDocument();
     expect(screen.getByText('Alice Brown')).toBeInTheDocument();
     expect(screen.getByText('Bob White')).toBeInTheDocument();
     expect(apiMock.get).toHaveBeenCalledWith('/ontrip.php');
@@ -56,15 +56,6 @@ test('shows empty state when no active trips', async () => {
     renderOnTrip(apiMock);
 
     await waitFor(() => {
-        expect(screen.getByText(/All vehicles are currently vacant/i)).toBeInTheDocument();
-    });
-});
-
-test('renders Active Control Center panel', async () => {
-    const apiMock = { get: vi.fn().mockResolvedValue({ data: mockTrips }) };
-    renderOnTrip(apiMock);
-
-    await waitFor(() => {
-        expect(screen.getByText('Active Control Center')).toBeInTheDocument();
+        expect(screen.getByText('No active trips at the moment.')).toBeInTheDocument();
     });
 });

@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { useToast } from '../context/ToastContext';
 import AuthContext from '../context/AuthContext';
+import { BASE_FARE_FALLBACK } from '../constants';
 
 const LocalTripClosing = () => {
     const toast = useToast();
@@ -21,14 +22,14 @@ const LocalTripClosing = () => {
         net_total: 0
     });
 
-    const [baseFareConfig, setBaseFareConfig] = useState(190);
+    const [baseFareConfig, setBaseFareConfig] = useState(BASE_FARE_FALLBACK);
 
     useEffect(() => {
         fetchVehicles();
         const fetchBaseFareConfig = async () => {
             try {
                 const res = await api.get('/settings.php?config=base_fare');
-                setBaseFareConfig(res.data.base_fare ?? 190);
+                setBaseFareConfig(res.data.base_fare ?? BASE_FARE_FALLBACK);
             } catch (e) {
                 console.error('Failed to load base fare config', e);
             }
@@ -317,7 +318,7 @@ const LocalTripClosing = () => {
                             </form>
                         )}
 
-                        {!tripData && selectedVid === '' && (
+                        {!tripData && selectedVid === '' && vehicles.length === 0 && (
                             <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7280' }}>
                                 <span className="material-icons" style={{ fontSize: 48, color: '#cbd5e1', marginBottom: 16, display: 'block' }}>gps_not_fixed</span>
                                 <div style={{ fontSize: 16, fontWeight: 600, color: '#023149' }}>No target assigned</div>

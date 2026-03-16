@@ -29,7 +29,8 @@ test('renders active vehicles table', async () => {
     expect(screen.getByText(/loading active vehicles network/i)).toBeInTheDocument();
 
     await waitFor(() => {
-        expect(screen.getByText('2 Vehicles Currently Active')).toBeInTheDocument();
+        // Component shows count "2" under label "Active"
+        expect(screen.getByText('2')).toBeInTheDocument();
     });
 
     expect(screen.getByText('V001')).toBeInTheDocument();
@@ -49,13 +50,18 @@ test('handles single vehicle logout', async () => {
     renderVehicleInOut(apiMock);
 
     await waitFor(() => {
-        expect(screen.getByText('2 Vehicles Currently Active')).toBeInTheDocument();
+        expect(screen.getByText('Driver One')).toBeInTheDocument();
     });
 
-    const input = screen.getByPlaceholderText('e.g. 640');
-    fireEvent.change(input, { target: { value: 'V001' } });
+    // Both Login and Logout sections have placeholder="Vehicle ID"
+    // The logout input is the second one
+    const vidInputs = screen.getAllByPlaceholderText('Vehicle ID');
+    const logoutInput = vidInputs[1]; // second is the logout input
+    fireEvent.change(logoutInput, { target: { value: 'V001' } });
 
-    const logoutBtn = screen.getByRole('button', { name: /Log Out/i });
+    // Logout button has icon text ("power_settings_new") + button text ("Logout")
+    // Use name ending with "Logout" (not "Logout All") to distinguish
+    const logoutBtn = screen.getByRole('button', { name: /Logout$/ });
     fireEvent.click(logoutBtn);
 
     await waitFor(() => {
@@ -78,10 +84,11 @@ test('handles all vehicle logout with confirmation', async () => {
     renderVehicleInOut(apiMock);
 
     await waitFor(() => {
-        expect(screen.getByText('2 Vehicles Currently Active')).toBeInTheDocument();
+        expect(screen.getByText('Driver One')).toBeInTheDocument();
     });
 
-    const logoutAllBtn = screen.getByRole('button', { name: /All Vehicle Logout/i });
+    // Logout All button: icon text "power_settings_new" + "Logout All"
+    const logoutAllBtn = screen.getByRole('button', { name: /Logout All/ });
     fireEvent.click(logoutAllBtn);
 
     await waitFor(() => {

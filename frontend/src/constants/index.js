@@ -159,6 +159,21 @@ export const STORAGE_KEYS = {
 };
 
 /* ─────────────────────────────────────────
+   FINANCE / FARE CONSTANTS
+───────────────────────────────────────── */
+/** Fallback base fare (₹) used when the settings API is unavailable */
+export const BASE_FARE_FALLBACK = 190;
+
+/** Office commission rate applied automatically when closing a trip (10 %) */
+export const COMMISSION_RATE = 0.10;
+
+/* ─────────────────────────────────────────
+   PAGINATION
+───────────────────────────────────────── */
+/** Default number of records per page for paginated tables */
+export const PAGE_LIMIT = 50;
+
+/* ─────────────────────────────────────────
    BOOKING ID FORMATTER
    Formats a numeric b_id as BK-XXXX for display across the app.
    Database and API always use the plain integer.

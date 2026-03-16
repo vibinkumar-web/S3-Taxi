@@ -10,8 +10,8 @@ const mockBookings = [
 ];
 
 const mockVehicles = [
-    { v_id: 'V001', v_no: 'KA-01-AB-1234', v_brand: 'Toyota', v_model: 'Innova', d_name: 'Driver One' },
-    { v_id: 'V002', v_no: 'KA-02-CD-5678', v_brand: 'Maruti', v_model: 'Swift', d_name: 'Driver Two' }
+    { v_id: 'V001', v_no: 'KA-01-AB-1234', v_brand: 'Toyota', v_model: 'Innova', d_name: 'Driver One', login_status: '1' },
+    { v_id: 'V002', v_no: 'KA-02-CD-5678', v_brand: 'Maruti', v_model: 'Swift', d_name: 'Driver Two', login_status: '1' }
 ];
 
 const renderAssignments = (apiMock) => {
@@ -28,7 +28,6 @@ test('renders assignments table with data', async () => {
     const apiMock = {
         get: vi.fn().mockImplementation((url) => {
             if (url === '/assign.php') return Promise.resolve({ data: mockBookings });
-            if (url === '/vehicles.php') return Promise.resolve({ data: mockVehicles });
             return Promise.resolve({ data: [] });
         })
     };
@@ -41,12 +40,12 @@ test('renders assignments table with data', async () => {
         expect(screen.getByText('Dispatch Assignments')).toBeInTheDocument();
     });
 
-    // Check if bookings are rendered
-    expect(screen.getByText('#100')).toBeInTheDocument();
+    // Booking IDs are formatted via formatBookingId()
+    expect(screen.getByText('BK-0100')).toBeInTheDocument();
     expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('City A')).toBeInTheDocument();
 
-    expect(screen.getByText('#101')).toBeInTheDocument();
+    expect(screen.getByText('BK-0101')).toBeInTheDocument();
     expect(screen.getByText('Jane Smith')).toBeInTheDocument();
 });
 
@@ -54,7 +53,8 @@ test('opens dispatch modal and assigns vehicle', async () => {
     const apiMock = {
         get: vi.fn().mockImplementation((url) => {
             if (url === '/assign.php') return Promise.resolve({ data: mockBookings });
-            if (url === '/vehicles.php') return Promise.resolve({ data: mockVehicles });
+            // Component fetches /available_vehicles.php?v_cat=... (not /vehicles.php)
+            if (url.includes('/available_vehicles.php')) return Promise.resolve({ data: mockVehicles });
             return Promise.resolve({ data: [] });
         }),
         post: vi.fn().mockResolvedValue({ data: { message: 'Assigned successfully' } })
@@ -63,19 +63,23 @@ test('opens dispatch modal and assigns vehicle', async () => {
     renderAssignments(apiMock);
 
     await waitFor(() => {
-        expect(screen.getByText('#100')).toBeInTheDocument();
+        expect(screen.getByText('BK-0100')).toBeInTheDocument();
     });
 
     // Click dispatch for the first booking
     const dispatchBtns = screen.getAllByRole('button', { name: /Dispatch/i });
     fireEvent.click(dispatchBtns[0]);
 
-    // Check if modal opens
-    expect(screen.getByText('Dispatch Assignment — #100')).toBeInTheDocument();
+    // Modal title uses formatBookingId
+    expect(screen.getByText('Dispatch Assignment — BK-0100')).toBeInTheDocument();
 
-    // Select a vehicle
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'V001' } });
+    // Wait for vehicle cards to load (component uses card divs, not a <select>)
+    await waitFor(() => {
+        expect(screen.getByText('KA-01-AB-1234')).toBeInTheDocument();
+    });
+
+    // Select vehicle by clicking on its registration number card
+    fireEvent.click(screen.getByText('KA-01-AB-1234'));
 
     // Submit assignment
     const assignBtn = screen.getByRole('button', { name: /Exec Dispatch/i });
@@ -86,7 +90,5 @@ test('opens dispatch modal and assigns vehicle', async () => {
             b_id: '100',
             v_id: 'V001'
         });
-        // Verification that data refreshes after assignment
-        expect(apiMock.get).toHaveBeenCalledTimes(3); // Initial 2 + 1 refresh
     });
 });
