@@ -69,6 +69,17 @@ const Bookings = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handlePickupChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => {
+            const current = prev.pickup || '';
+            const [datePart, timePart] = current.includes('T') ? current.split('T') : [current, ''];
+            const newDate = name === 'pickup_date' ? value : datePart;
+            const newTime = name === 'pickup_time' ? value : timePart;
+            return { ...prev, pickup: newDate && newTime ? `${newDate}T${newTime}` : newDate || '' };
+        });
+    };
+
     const handleMobileChange = (e) => {
         const value = e.target.value;
         setFormData(prev => ({ ...prev, m_no: value }));
@@ -301,7 +312,10 @@ const Bookings = () => {
                                 </div>
                                 <div className="form-field" style={{ margin: 0 }}>
                                     <label>Scheduled Pickup Time <span style={{ color: '#c5111a' }}>*</span></label>
-                                    <input type="datetime-local" name="pickup" value={formData.pickup} onChange={handleInputChange} required />
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                        <input type="date" name="pickup_date" value={formData.pickup ? formData.pickup.split('T')[0] : ''} onChange={handlePickupChange} required style={{ flex: 1 }} />
+                                        <input type="time" name="pickup_time" value={formData.pickup && formData.pickup.includes('T') ? formData.pickup.split('T')[1] : ''} onChange={handlePickupChange} required style={{ flex: 1 }} />
+                                    </div>
                                 </div>
                                 <div className="form-field" style={{ margin: 0 }}>
                                     <label>Tariff Classification</label>
