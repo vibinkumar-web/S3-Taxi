@@ -1,4 +1,5 @@
 <?php
+require_once '../config/cors.php';
 session_start();
 include_once '../config/db.php';
 
@@ -10,7 +11,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'POST') {
     $data = json_decode(file_get_contents("php://input"));
 
-    if (!empty($data->b_id) && !empty($data->reason)) {
+    if (!empty($data->b_id) && !empty($data->reason) && !empty($data->user_id)) {
         
         // 1. Fetch booking details
         $query = "SELECT * FROM f_ft_booking WHERE b_id = :b_id";
@@ -68,8 +69,7 @@ if ($method === 'POST') {
             $insStmt->bindParam(":v_types", $row['v_types']);
             $insStmt->bindParam(":v_no", $row['v_no']);
             $insStmt->bindParam(":d_mobile", $row['d_mobile']);
-            $user_id_safe = isset($data->user_id) ? $data->user_id : '1';
-            $insStmt->bindParam(":user_id", $user_id_safe); // User performing cancel
+            $insStmt->bindParam(":user_id", $data->user_id); // User performing cancel
             $insStmt->bindParam(":reason", $data->reason);
             
             if ($insStmt->execute()) {

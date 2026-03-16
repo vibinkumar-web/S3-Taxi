@@ -1,12 +1,25 @@
 <?php
-session_start();
+// CORS headers must be first — before session_start and any other output
+$allowed_origins = array_filter(array_map('trim', explode(',',
+    getenv('ALLOWED_ORIGINS') ?: 'http://localhost:5173,http://localhost:5174,http://localhost:5175'
+)));
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+if (in_array($origin, $allowed_origins)) {
+    header("Access-Control-Allow-Origin: " . $origin);
+} else {
+    header("Access-Control-Allow-Origin: " . reset($allowed_origins));
+}
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS");
-header("Access-Control-Max-Age: 3600");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
-
+session_start();
 include_once '../config/db.php';
 
 $database = new Database();
@@ -47,7 +60,7 @@ if ($method === 'GET') {
     if ($action === 'start_trip') {
         // Update login_status to 1 (Legacy: btnsubmit for status)
         $v_id = $data->v_id;
-        $query = "UPDATE f_login_status SET login_status = '1' WHERE v_id = :v_id";
+        $query = "UPDATE f_login_status SET login_status = '1' WHERE id_emp = :v_id";
         $stmt = $db->prepare($query);
         $stmt->bindParam(":v_id", $v_id);
         
@@ -78,7 +91,7 @@ if ($method === 'GET') {
             exit;
         }
         
-        date_default_timezone_set("Asia/Calcutta");  
+        date_default_timezone_set('Asia/Kolkata');
         $current_time = date("Y-m-d H:i");
         $new_opening = ($last_closing_km > 0) ? ($last_closing_km - $opening_km) : 0; // Legacy logic seems to be last - open? Wait, legacy: $new_one = $last_ckm - $opening_km; 
         // Actually legacy logic $old_km < $opening_km check implies Opening should be GREATER.

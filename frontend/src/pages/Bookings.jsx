@@ -47,8 +47,8 @@ const Bookings = () => {
     useEffect(() => {
         api.get('/bookings.php?action=next_id')
             .then(res => {
-                setNextBookingId(res.data.next_id);
-                setTotalBookings(res.data.total);
+                setNextBookingId(res.data.next_id ?? null);
+                setTotalBookings(typeof res.data.total === 'number' ? res.data.total : null);
             })
             .catch(() => {});
     }, []);
@@ -213,7 +213,7 @@ const Bookings = () => {
             const savedId = bookingRes.data?.b_id;
             resetForm();
             setNextBookingId(savedId ? parseInt(savedId, 10) + 1 : null);
-            setTotalBookings(prev => prev !== null ? prev + 1 : null);
+            setTotalBookings(prev => (typeof prev === 'number' && !isNaN(prev)) ? prev + 1 : null);
             toast('Booking Registered Successfully! Redirecting to Assign page to dispatch driver.');
             navigate('/assignments');
         } catch (error) {

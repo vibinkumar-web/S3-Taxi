@@ -27,6 +27,7 @@ test('renders customer filter form with Execute Query button', async () => {
 
     expect(screen.getByRole('button', { name: /execute query/i })).toBeInTheDocument();
     expect(screen.getByText(/target customer profile/i)).toBeInTheDocument();
+    await waitFor(() => {});
 });
 
 test('fetches customer list and report data on mount', async () => {

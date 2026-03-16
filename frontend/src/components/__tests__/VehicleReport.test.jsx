@@ -18,13 +18,14 @@ const renderVehicleReport = (apiMock) => render(
     </BrowserRouter>
 );
 
-test('renders vehicle report filter form', () => {
+test('renders vehicle report filter form', async () => {
     const apiMock = { get: vi.fn().mockResolvedValue({ data: [] }) };
     renderVehicleReport(apiMock);
     expect(screen.getByRole('button', { name: /execute/i })).toBeInTheDocument();
     expect(screen.getByText(/target asset node/i)).toBeInTheDocument();
     expect(screen.getByText(/origin epoch/i)).toBeInTheDocument();
     expect(screen.getByText(/terminus epoch/i)).toBeInTheDocument();
+    await waitFor(() => {});
 });
 
 test('fetches vehicle list on mount', async () => {
@@ -104,11 +105,12 @@ test('shows totals summary after form submit returns data', async () => {
     expect(screen.getByText(/brokerage retention/i)).toBeInTheDocument();
 });
 
-test('initializes date inputs to today', () => {
+test('initializes date inputs to today', async () => {
     const apiMock = { get: vi.fn().mockResolvedValue({ data: [] }) };
     const { container } = renderVehicleReport(apiMock);
     const today = new Date().toISOString().split('T')[0];
     const dateInputs = container.querySelectorAll('input[type="date"]');
     expect(dateInputs[0].value).toBe(today);
     expect(dateInputs[1].value).toBe(today);
+    await waitFor(() => {});
 });

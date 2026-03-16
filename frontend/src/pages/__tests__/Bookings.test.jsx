@@ -16,7 +16,7 @@ const renderBookings = (apiMock) => {
     );
 };
 
-test('renders booking registration form with title and buttons', () => {
+test('renders booking registration form with title and buttons', async () => {
     const apiMock = { get: vi.fn().mockResolvedValue({ data: [] }), post: vi.fn() };
     const { container } = renderBookings(apiMock);
 
@@ -27,9 +27,11 @@ test('renders booking registration form with title and buttons', () => {
     // Inputs exist in the form
     expect(container.querySelector('input[name="m_no"]')).toBeInTheDocument();
     expect(container.querySelector('input[name="b_name"]')).toBeInTheDocument();
+    // Flush pending useEffect API promises to avoid act() warnings
+    await waitFor(() => {});
 });
 
-test('renders form sections and key fields', () => {
+test('renders form sections and key fields', async () => {
     const apiMock = { get: vi.fn().mockResolvedValue({ data: [] }), post: vi.fn() };
     const { container } = renderBookings(apiMock);
 
@@ -38,6 +40,7 @@ test('renders form sections and key fields', () => {
     expect(container.querySelector('input[name="m_no"]')).toBeInTheDocument();
     expect(container.querySelector('input[name="b_name"]')).toBeInTheDocument();
     expect(container.querySelector('input[name="d_place"]')).toBeInTheDocument();
+    await waitFor(() => {});
 });
 
 test('submits booking form and calls API with form data', async () => {

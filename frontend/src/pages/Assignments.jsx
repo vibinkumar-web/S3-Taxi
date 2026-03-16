@@ -125,7 +125,7 @@ const Assignments = () => {
             setPendingBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
             closeModal();
             toast('Vehicle Dispatched Successfully! Check the Trip Closing page when the trip is finished.');
-            navigate('/');
+            navigate('/assignments');
         } catch (error) {
             console.error('Error assigning vehicle', error);
             toast('Failed to assign driver.', 'error');

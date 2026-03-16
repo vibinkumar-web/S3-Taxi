@@ -1,4 +1,5 @@
 <?php
+require_once '../config/cors.php';
 session_start();
 include '../config/db.php';
 $database = new Database();

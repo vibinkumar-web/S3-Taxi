@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import AuthContext from '../context/AuthContext';
+import { COMMISSION_RATE } from '../constants';
 
 const VehicleReport = () => {
     const { api } = useContext(AuthContext);
@@ -43,7 +44,7 @@ const VehicleReport = () => {
 
     const calculateTotals = (data) => {
         const totalAmount = data.reduce((sum, item) => sum + (parseFloat(item.net_total) || 0), 0);
-        const fees = totalAmount * 0.10; // 10% Call Center Fees
+        const fees = totalAmount * COMMISSION_RATE;
         setTotals({ amount: totalAmount, fees: fees });
     };
 

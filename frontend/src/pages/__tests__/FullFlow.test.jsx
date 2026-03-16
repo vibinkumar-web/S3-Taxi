@@ -107,7 +107,7 @@ const wrap = (ui, apiMock) => render(
 
 describe('Phase 1 – Booking Registration (Bookings.jsx)', () => {
 
-    test('1.1 Page renders with all four form sections', () => {
+    test('1.1 Page renders with all four form sections', async () => {
         const api = { get: vi.fn().mockResolvedValue({ data: [] }) };
         const { container } = wrap(<Bookings />, api);
 
@@ -116,6 +116,7 @@ describe('Phase 1 – Booking Registration (Bookings.jsx)', () => {
         expect(screen.getByText(/Route & Operational Dynamics/i)).toBeInTheDocument();
         expect(screen.getByText(/Fleet Requisites/i)).toBeInTheDocument();
         expect(container.querySelector('input[name="m_no"]')).toBeInTheDocument();
+        await waitFor(() => {});
     });
 
     test('1.2 Fetches next booking ID on mount and displays banner', async () => {
@@ -279,6 +280,7 @@ describe('Phase 1 – Booking Registration (Bookings.jsx)', () => {
         fireEvent.click(screen.getByRole('button', { name: /Discard/i }));
 
         expect(container.querySelector('input[name="b_name"]').value).toBe('');
+        await waitFor(() => {});
     });
 
     test('1.9 BUG CHECK – next booking ID increment is numeric after save', async () => {
@@ -369,6 +371,7 @@ describe('Phase 2 – Dispatch Assignment (Assignments.jsx)', () => {
         expect(screen.getByText(/Dispatch Assignment — BK-0501/i)).toBeInTheDocument();
         expect(screen.getAllByText(/Ravi Kumar/)[0]).toBeInTheDocument();
         expect(screen.getAllByText(/Chennai/)[0]).toBeInTheDocument();
+        await waitFor(() => {});
     });
 
     test('2.4 Vehicle list renders inside modal after fetch', async () => {

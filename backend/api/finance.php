@@ -1,4 +1,7 @@
 <?php
+require_once '../config/cors.php';
+define('COMMISSION_RATE', 0.10);
+
 session_start();
 include_once '../config/db.php';
 
@@ -75,6 +78,7 @@ switch ($method) {
                 $month = !empty($_GET['month']) ? $_GET['month'] : date('Y-m');
                 $all_time = isset($_GET['all_time']) && $_GET['all_time'] === '1';
                 $v_id_filter = !empty($_GET['v_id']) ? trim($_GET['v_id']) : '';
+                $commission_rate = COMMISSION_RATE;
 
                 if ($all_time) {
                     // No date filter — all trips ever
@@ -85,9 +89,9 @@ switch ($method) {
                             va.d_name,
                             COUNT(c.b_id) as trip_count,
                             COALESCE(SUM(c.net_total), 0) as total_earnings,
-                            ROUND(COALESCE(SUM(c.net_total), 0) * 0.10, 2) as commission_due,
+                            ROUND(COALESCE(SUM(c.net_total), 0) * {$commission_rate}, 2) as commission_due,
                             COALESCE(paid.commission_paid, 0) as commission_paid,
-                            GREATEST(0, ROUND(COALESCE(SUM(c.net_total), 0) * 0.10 - COALESCE(paid.commission_paid, 0), 2)) as commission_pending
+                            GREATEST(0, ROUND(COALESCE(SUM(c.net_total), 0) * {$commission_rate} - COALESCE(paid.commission_paid, 0), 2)) as commission_pending
                         FROM f_v_attach va
                         LEFT JOIN f_closing c ON va.v_id = c.v_id
                         LEFT JOIN (
@@ -106,9 +110,9 @@ switch ($method) {
                             va.d_name,
                             COUNT(c.b_id) as trip_count,
                             COALESCE(SUM(c.net_total), 0) as total_earnings,
-                            ROUND(COALESCE(SUM(c.net_total), 0) * 0.10, 2) as commission_due,
+                            ROUND(COALESCE(SUM(c.net_total), 0) * {$commission_rate}, 2) as commission_due,
                             COALESCE(paid.commission_paid, 0) as commission_paid,
-                            GREATEST(0, ROUND(COALESCE(SUM(c.net_total), 0) * 0.10 - COALESCE(paid.commission_paid, 0), 2)) as commission_pending
+                            GREATEST(0, ROUND(COALESCE(SUM(c.net_total), 0) * {$commission_rate} - COALESCE(paid.commission_paid, 0), 2)) as commission_pending
                         FROM f_v_attach va
                         LEFT JOIN f_closing c ON va.v_id = c.v_id AND DATE_FORMAT(c.p_date, '%Y-%m') = ?
                         LEFT JOIN (
@@ -197,7 +201,7 @@ switch ($method) {
                 $tripData = $tripStmt->fetch(PDO::FETCH_ASSOC);
 
                 $totalEarnings = floatval($tripData['total_earnings']);
-                $commissionDue = round($totalEarnings * 0.10, 2);
+                $commissionDue = round($totalEarnings * COMMISSION_RATE, 2);
 
                 // Sum commissions already paid for this vehicle in the given month (from finance_ledger)
                 $paidStmt = $pdo->prepare("

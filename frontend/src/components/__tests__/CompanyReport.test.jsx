@@ -18,11 +18,12 @@ const renderCompanyReport = (apiMock) => render(
     </BrowserRouter>
 );
 
-test('renders company report filter form with Digest button', () => {
+test('renders company report filter form with Digest button', async () => {
     const apiMock = { get: vi.fn().mockResolvedValue({ data: [] }) };
     renderCompanyReport(apiMock);
     expect(screen.getByRole('button', { name: /digest/i })).toBeInTheDocument();
     expect(screen.getByText(/corporate sub-entity filter/i)).toBeInTheDocument();
+    await waitFor(() => {});
 });
 
 test('fetches company list on mount', async () => {
@@ -101,13 +102,14 @@ test('shows corporate gross yield summary after form submit', async () => {
     });
 });
 
-test('initializes date inputs to today', () => {
+test('initializes date inputs to today', async () => {
     const apiMock = { get: vi.fn().mockResolvedValue({ data: [] }) };
     const { container } = renderCompanyReport(apiMock);
     const today = new Date().toISOString().split('T')[0];
     const dateInputs = container.querySelectorAll('input[type="date"]');
     expect(dateInputs[0].value).toBe(today);
     expect(dateInputs[1].value).toBe(today);
+    await waitFor(() => {});
 });
 
 test('re-fetches report on form submit', async () => {
