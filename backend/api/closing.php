@@ -90,6 +90,7 @@ if ($method === 'GET') {
         
         // Prepare data matching legacy Insert
         $b_id = $data->b_id;
+        $bid  = intval($data->b_id); // bid column is INT NOT NULL
         $v_id = $data->v_id;
         $opening_km = $data->opening_km;
         $closing_km = $data->closing_km;
@@ -116,9 +117,9 @@ if ($method === 'GET') {
         $dis_reason = $data->dis_reason ?? '';
         $to_whom = $data->company ?? $data->to_whom ?? '';
         $customer = $data->b_name ?? $data->customer ?? '';
-        $m_no = $data->m_no;
-        $d_mobile = $data->d_mobile;
-        $user_id = $data->user_id;
+        $m_no = $data->m_no ?? '';
+        $d_mobile = $data->d_mobile ?? '';
+        $user_id = $data->user_id ?? '';
         $pending = ($net_total > $paid_amount) ? '1' : '0';
         
         // Legacy fetches pickup/drop time from data or f_ontrip, using defaults here
@@ -128,7 +129,7 @@ if ($method === 'GET') {
 
         $query = "INSERT INTO f_closing SET
             b_id = :b_id,
-            bid = :b_id,
+            bid  = :bid,
             v_id = :v_id,
             opening_km = :opening_km,
             closing_km = :closing_km,
@@ -164,6 +165,7 @@ if ($method === 'GET') {
 
         $stmt = $db->prepare($query);
         $stmt->bindParam(":b_id", $b_id);
+        $stmt->bindParam(":bid",  $bid, PDO::PARAM_INT);
         $stmt->bindParam(":v_id", $v_id);
         $stmt->bindParam(":opening_km", $opening_km);
         $stmt->bindParam(":closing_km", $closing_km);
