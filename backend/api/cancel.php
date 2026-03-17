@@ -27,6 +27,7 @@ if ($method === 'POST') {
             $cancel_date = date('Y-m-d'); // Capture current date for b_date
             $insertQuery = "INSERT INTO f_calcel_booking SET
                 b_id = :b_id,
+                e_id = :e_id,
                 b_date = :b_date,
                 pickup = :pickup,
                 d_place = :d_place,
@@ -47,11 +48,13 @@ if ($method === 'POST') {
                 v_types = :v_types,
                 v_no = :v_no,
                 d_mobile = :d_mobile,
+                assign = :assign,
                 user_id = :user_id,
                 reason = :reason";
 
             $insStmt = $db->prepare($insertQuery);
             $insStmt->bindParam(":b_id", $row['b_id']);
+            $insStmt->bindParam(":e_id", $row['e_id']);
             $insStmt->bindParam(":b_date", $cancel_date);
             $insStmt->bindParam(":pickup", $row['pickup']);
             $insStmt->bindParam(":d_place", $row['d_place']);
@@ -72,6 +75,7 @@ if ($method === 'POST') {
             $insStmt->bindParam(":v_types", $row['v_types']);
             $insStmt->bindParam(":v_no", $row['v_no']);
             $insStmt->bindParam(":d_mobile", $row['d_mobile']);
+            $insStmt->bindParam(":assign", $row['assign']);
             $insStmt->bindParam(":user_id", $data->user_id); // User performing cancel
             $insStmt->bindParam(":reason", $data->reason);
             

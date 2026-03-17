@@ -230,10 +230,15 @@ const Bookings = () => {
                         <h1>Register New Booking</h1>
                         <p>Fill in the details below to register a new trip booking</p>
                     </div>
-                    {totalBookings !== null && (
-                        <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 10, padding: '10px 20px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)' }}>
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 700 }}>Total Bookings</div>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', lineHeight: 1.1 }}>{totalBookings}</div>
+                    {nextBookingId !== null && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: '8px 16px' }}>
+                            <span className="material-icons" style={{ color: '#fbbf24', fontSize: 22 }}>confirmation_number</span>
+                            <div>
+                                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 700 }}>Booking Ref</div>
+                                <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', letterSpacing: '.04em', fontFamily: 'monospace' }}>
+                                    BK-{String(nextBookingId).padStart(4, '0')}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -242,25 +247,6 @@ const Bookings = () => {
             <div className="page-body">
                 <form id="bookingForm" onSubmit={handleSubmit}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-
-                        {/* Booking ID Banner */}
-                        {nextBookingId !== null && (
-                            <div style={{ background: 'linear-gradient(135deg, #023149 0%, #0c4a6e 100%)', borderRadius: 10, padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                                    <span className="material-icons" style={{ color: '#fbbf24', fontSize: 26 }}>confirmation_number</span>
-                                    <div>
-                                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '.07em', fontWeight: 700 }}>New Booking Reference</div>
-                                        <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', letterSpacing: '.04em', fontFamily: 'monospace' }}>
-                                            BK-{String(nextBookingId).padStart(4, '0')}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>This ID will be saved on confirm</div>
-                                    <div style={{ fontSize: 13, color: '#86efac', fontWeight: 700 }}>{totalBookings} total bookings registered</div>
-                                </div>
-                            </div>
-                        )}
 
                         {/* Customer Identity Profile */}
                         <div>

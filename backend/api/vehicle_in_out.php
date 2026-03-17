@@ -17,6 +17,7 @@ header("Content-Type: application/json; charset=UTF-8");
 
 
 session_start();
+date_default_timezone_set('Asia/Kolkata');
 include_once '../config/db.php';
 
 $database = new Database();
@@ -124,13 +125,11 @@ if ($method === 'POST') {
         $upd->bindParam(':login_time', $login_time);
 
         if ($upd->execute()) {
-            // Update vacant_place in f_v_attach if location provided
-            if ($location) {
-                $loc = $db->prepare("UPDATE f_v_attach SET vacant_place = :location WHERE v_id = :v_id");
-                $loc->bindParam(':location', $location);
-                $loc->bindParam(':v_id', $v_id);
-                $loc->execute();
-            }
+            // Always update vacant_place — clear it if no location provided
+            $loc = $db->prepare("UPDATE f_v_attach SET vacant_place = :location WHERE v_id = :v_id");
+            $loc->bindParam(':location', $location);
+            $loc->bindParam(':v_id', $v_id);
+            $loc->execute();
             echo json_encode(["message" => "Vehicle $v_id logged in successfully.", "status" => "success"]);
         } else {
             http_response_code(500);

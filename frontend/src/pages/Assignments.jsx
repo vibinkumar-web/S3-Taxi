@@ -7,7 +7,7 @@ import AuthContext from '../context/AuthContext';
 const Assignments = () => {
     const toast = useToast();
     const navigate = useNavigate();
-    const { api } = useContext(AuthContext);
+    const { api, user } = useContext(AuthContext);
 
     const [pendingBookings, setPendingBookings] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,6 +25,10 @@ const Assignments = () => {
     const [dispatchingAltCat, setDispatchingAltCat] = useState(null);
     // 'none' = no active vehicles at all | 'mismatch' = active but wrong class | null = vehicles found
     const [availabilityState, setAvailabilityState] = useState(null);
+
+    // Abort (cancel booking) state
+    const [abortConfirm, setAbortConfirm] = useState(false);
+    const [isAborting, setIsAborting] = useState(false);
 
     useEffect(() => {
         fetchBookings();
@@ -108,6 +112,32 @@ const Assignments = () => {
         setSavedAlternativeGroups([]);
         setDispatchingAltCat(null);
         setAvailabilityState(null);
+        setAbortConfirm(false);
+    };
+
+    const handleAbort = async () => {
+        if (!selectedBooking) return;
+        const userId = user?.emp_id || user?.id;
+        if (!userId) {
+            toast('Unable to identify current user.', 'error');
+            return;
+        }
+        setIsAborting(true);
+        try {
+            await api.post('/cancel.php', {
+                b_id: selectedBooking.b_id,
+                reason: 'Aborted from dispatch assignments',
+                user_id: userId
+            });
+            closeModal();
+            await fetchBookings();
+            toast(`Booking ${formatBookingId(selectedBooking.b_id)} has been cancelled.`);
+        } catch (err) {
+            const msg = err?.response?.data?.message || 'Failed to cancel booking.';
+            toast(msg, 'error');
+        } finally {
+            setIsAborting(false);
+        }
     };
 
     const handleAssign = async () => {
@@ -432,25 +462,64 @@ const Assignments = () => {
                         </div>
 
                         <div className="modal-footer" style={{ padding: '16px 32px' }}>
-                            <button type="button" className="btn-ghost" onClick={closeModal}>Abort</button>
-                            <button
-                                type="submit"
-                                form="assignForm"
-                                className="btn-primary"
-                                disabled={!selectedVehicleId}
-                                style={{
-                                    background: '#c5111a',
-                                    height: 42,
-                                    padding: '0 32px',
-                                    opacity: !selectedVehicleId ? 0.6 : 1,
-                                    cursor: !selectedVehicleId ? 'not-allowed' : 'pointer'
-                                }}
-                                onMouseEnter={e => { if (selectedVehicleId) e.currentTarget.style.background = '#7d0907'; }}
-                                onMouseLeave={e => { if (selectedVehicleId) e.currentTarget.style.background = '#c5111a'; }}
-                            >
-                                <span className="material-icons" style={{ fontSize: 18 }}>gavel</span>
-                                Exec Dispatch
-                            </button>
+                            {abortConfirm ? (
+                                <div style={{ width: '100%' }}>
+                                    <div style={{ marginBottom: 12, color: '#7d0907', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span className="material-icons" style={{ fontSize: 16 }}>warning</span>
+                                        Cancel booking {formatBookingId(selectedBooking.b_id)} permanently?
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                        <button
+                                            type="button"
+                                            className="btn-ghost"
+                                            onClick={() => setAbortConfirm(false)}
+                                            disabled={isAborting}
+                                        >
+                                            Go Back
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn-primary"
+                                            onClick={handleAbort}
+                                            disabled={isAborting}
+                                            style={{ background: '#c5111a', height: 42, padding: '0 24px' }}
+                                        >
+                                            <span className="material-icons" style={{ fontSize: 16 }}>cancel</span>
+                                            {isAborting ? 'Cancelling...' : 'Yes, Cancel Booking'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <button
+                                        type="button"
+                                        className="btn-ghost"
+                                        onClick={() => setAbortConfirm(true)}
+                                        style={{ color: '#c5111a', borderColor: '#fecaca' }}
+                                    >
+                                        <span className="material-icons" style={{ fontSize: 16 }}>cancel</span>
+                                        Abort Booking
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        form="assignForm"
+                                        className="btn-primary"
+                                        disabled={!selectedVehicleId}
+                                        style={{
+                                            background: '#c5111a',
+                                            height: 42,
+                                            padding: '0 32px',
+                                            opacity: !selectedVehicleId ? 0.6 : 1,
+                                            cursor: !selectedVehicleId ? 'not-allowed' : 'pointer'
+                                        }}
+                                        onMouseEnter={e => { if (selectedVehicleId) e.currentTarget.style.background = '#7d0907'; }}
+                                        onMouseLeave={e => { if (selectedVehicleId) e.currentTarget.style.background = '#c5111a'; }}
+                                    >
+                                        <span className="material-icons" style={{ fontSize: 18 }}>gavel</span>
+                                        Exec Dispatch
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
